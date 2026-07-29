@@ -9,6 +9,7 @@ import {
 } from "node:fs/promises";
 import { createServer } from "node:http";
 import { basename, extname, join, resolve } from "node:path";
+import { serializePost } from "./lib/posts.mjs";
 import { assertPathInside, decodeImageDataUrl } from "./lib/storage.mjs";
 
 const root = process.cwd();
@@ -341,6 +342,9 @@ async function listPosts() {
 					draft: frontmatter.draft === true,
 					category: frontmatter.category || "",
 					tags: frontmatter.tags || [],
+					featured: frontmatter.featured === true,
+					contentSection: frontmatter.contentSection || "",
+					status: frontmatter.status || "",
 				};
 			}),
 	);
@@ -714,7 +718,7 @@ async function handleApi(request, response, pathname) {
 				error: "此文件名已存在。",
 			});
 		} catch {}
-		await writeFile(file, renderPost(body), "utf8");
+		await writeFile(file, serializePost(body), "utf8");
 		await addToTagLibrary(body.tags);
 		await addToCategoryLibrary(body.category);
 		await addToCategoryLibrary(body.category);
@@ -743,7 +747,7 @@ async function handleApi(request, response, pathname) {
 		const currentFile = fileForSlug(currentSlug);
 		const nextFile = fileForSlug(nextSlug);
 		if (currentFile !== nextFile) await rename(currentFile, nextFile);
-		await writeFile(nextFile, renderPost(body), "utf8");
+		await writeFile(nextFile, serializePost(body), "utf8");
 		await addToTagLibrary(body.tags);
 		await addToCategoryLibrary(body.category);
 		await addToCategoryLibrary(body.category);
