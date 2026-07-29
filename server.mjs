@@ -364,6 +364,8 @@ async function readSettings() {
 	return {
 		title: settingValue(source, /title:\s*"([^"]*)"/, ""),
 		subtitle: settingValue(source, /subtitle:\s*"([^"]*)"/, ""),
+		profileName: settingValue(source, /export const profileConfig[\s\S]*?name:\s*"([^"]*)"/, ""),
+		profileBio: settingValue(source, /export const profileConfig[\s\S]*?bio:\s*"([^"]*)"/, ""),
 		themeHue: Number(settingValue(source, /hue:\s*(\d+)/, "35")),
 		bannerEnabled:
 			settingValue(
@@ -407,6 +409,8 @@ async function writeSettings(data) {
 	};
 	replace(/title:\s*"[^"]*"/, `title: ${quoteYaml(data.title)}`);
 	replace(/subtitle:\s*"[^"]*"/, `subtitle: ${quoteYaml(data.subtitle)}`);
+	replace(/(export const profileConfig[\s\S]*?name:\s*)"[^"]*"/, `$1${quoteYaml(data.profileName)}`);
+	replace(/(export const profileConfig[\s\S]*?bio:\s*)"[^"]*"/, `$1${quoteYaml(data.profileBio)}`);
 	replace(
 		/hue:\s*\d+/,
 		`hue: ${Math.max(0, Math.min(360, Number(data.themeHue) || 0))}`,
