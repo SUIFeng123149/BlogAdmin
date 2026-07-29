@@ -9,6 +9,7 @@ import {
 } from "node:fs/promises";
 import { createServer } from "node:http";
 import { basename, extname, join, resolve } from "node:path";
+import { assertPathInside, decodeImageDataUrl } from "./lib/storage.mjs";
 
 const root = process.cwd();
 const adminEnv = await readFile(resolve(root, ".env.admin"), "utf8").catch(
@@ -201,8 +202,13 @@ async function saveCollectionMedia(collection, body) {
 		/^data:([^;]+);base64,([\s\S]+)$/,
 	);
 	if (!match) throw new Error("上传数据无效。");
-	const mime = match[1].toLowerCase();
-	const bytes = Buffer.from(match[2], "base64");
+	const { mime, bytes } = decodeImageDataUrl(body.data, [
+		"image/webp",
+		"image/jpeg",
+		"image/png",
+		"image/gif",
+		"audio/mpeg",
+	]);
 	const field = body.field || "cover";
 	let directory;
 	let extension;
@@ -245,7 +251,9 @@ async function saveCollectionMedia(collection, body) {
 		throw new Error("图片必须是有效的 WebP 文件。");
 	await mkdir(directory, { recursive: true });
 	const filename = safeAssetName(body.name, extension);
-	await writeFile(join(directory, filename), bytes);
+	const target = join(directory, filename);
+	assertPathInside(directory, target);
+	await writeFile(target, bytes);
 	return { path: `${publicPath}/${filename}` };
 }
 async function getCategoryOptions() {
@@ -274,8 +282,11 @@ async function savePostAsset(slug, body) {
 		/^data:([^;]+);base64,([\s\S]+)$/,
 	);
 	if (!match) throw new Error("上传数据无效。");
-	const mime = match[1].toLowerCase();
-	const bytes = Buffer.from(match[2], "base64");
+	const { mime, bytes } = decodeImageDataUrl(body.data, [
+		"image/webp",
+		"video/mp4",
+		"video/webm",
+	]);
 	const kind = body.kind === "video" ? "video" : "image";
 	let extension;
 	if (kind === "image") {
@@ -298,7 +309,9 @@ async function savePostAsset(slug, body) {
 		body.cover && kind === "image"
 			? "cover.webp"
 			: safeAssetName(body.name, extension);
-	await writeFile(join(directory, filename), bytes);
+	const target = join(directory, filename);
+	assertPathInside(directory, target);
+	await writeFile(target, bytes);
 	const relative = `./${cleanSlug(slug)}.assets/${filename}`;
 	return {
 		path: relative,
