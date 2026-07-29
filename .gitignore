@@ -1,3 +1,6 @@
 # environment variables (sensitive)
 .env
 .env.admin
+
+# local Git worktrees
+.worktrees/
