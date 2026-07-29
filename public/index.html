@@ -111,5 +111,10 @@
     async function editAlbum(id){ const {item}=await api(`/api/albums/${encodeURIComponent(id)}`); albumForm.reset(); Object.entries(item).forEach(([k,v])=>{const f=albumForm.elements[k];if(f) f.type==="checkbox"?f.checked=!!v:f.value=v??"";}); albumForm.classList.remove("hidden"); }
     albumNav.onclick=()=>{show("albums");loadAlbums().catch(e=>showToast("相册加载失败",e.message,"error"));}; document.querySelector("#new-album").onclick=()=>{albumForm.reset();albumForm.elements.columns.value=3;albumForm.classList.remove("hidden");}; albumForm.onsubmit=async e=>{e.preventDefault();const data=Object.fromEntries(new FormData(albumForm));data.hidden=albumForm.elements.hidden.checked;data.columns=Number(data.columns||3);await api(`/api/albums/${encodeURIComponent(data.id)}`,{method:"PUT",body:JSON.stringify(data)});showToast("相册已保存","相册信息已更新。");loadAlbums();};
   </script>
+  <script>
+    const announcementControls=document.createElement("div"); announcementControls.className="panel stack";
+    announcementControls.innerHTML='<h2>公告</h2><label class="check"><input name="announcementEnabled" type="checkbox"> 启用公告</label><label>公告内容<textarea name="announcementContent" rows="4" maxlength="500"></textarea></label>';
+    document.querySelector("#settings-form .panel:last-child")?.before(announcementControls);
+  </script>
 </body>
 </html>

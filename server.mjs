@@ -386,6 +386,17 @@ async function readSettings() {
 		ogImagesEnabled:
 			settingValue(source, /generateOgImages:\s*(true|false)/, "false") ===
 			"true",
+		announcementEnabled:
+			settingValue(
+				 source,
+				/export const announcementConfig[\s\S]*?enable:\s*(true|false)/,
+				"false",
+			) === "true",
+		announcementContent: settingValue(
+			source,
+			/export const announcementConfig[\s\S]*?content:\s*"([^"]*)"/,
+			"",
+		),
 	};
 }
 
@@ -415,6 +426,14 @@ async function writeSettings(data) {
 	replace(
 		/generateOgImages:\s*(true|false)/,
 		`generateOgImages: ${Boolean(data.ogImagesEnabled)}`,
+	);
+	replace(
+		/(export const announcementConfig[\s\S]*?enable:\s*)(true|false)/,
+		`$1${Boolean(data.announcementEnabled)}`,
+	);
+	replace(
+		/(export const announcementConfig[\s\S]*?content:\s*)"[^"]*"/,
+		`$1${quoteYaml(data.announcementContent)}`,
 	);
 	await writeFile(`${configPath}.backup`, await readFile(configPath));
 	await writeFile(configPath, source, "utf8");
