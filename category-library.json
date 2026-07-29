@@ -1,7 +1,25 @@
 [
+  "AI Agent",
+  "AutoGen",
   "BigData",
+  "Coze",
+  "DeepSeek",
   "desktop",
+  "Dify",
+  "Fine-tuning",
+  "Interview",
+  "JavaSE",
+  "LangChain",
+  "LangGraph",
+  "LLM Introduction",
+  "MCP",
   "mobile",
+  "Multi-Agent",
+  "MySQL",
+  "OpenAI",
   "other",
-  "web"
+  "Prompt Engineering",
+  "RAG",
+  "web",
+  "Web"
 ]
