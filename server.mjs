@@ -10,6 +10,7 @@ import {
 import { createServer } from "node:http";
 import { basename, extname, join, resolve } from "node:path";
 import { serializePost } from "./lib/posts.mjs";
+import { normalizeAlbumInfo, validateAlbumId } from "./lib/albums.mjs";
 import { assertPathInside, decodeImageDataUrl } from "./lib/storage.mjs";
 
 const root = process.cwd();
@@ -27,6 +28,7 @@ const publicDir = resolve(root, "admin/public");
 const tagLibraryPath = resolve(root, "admin/tag-library.json");
 const categoryLibraryPath = resolve(root, "admin/category-library.json");
 const artistLibraryPath = resolve(root, "admin/artist-library.json");
+const albumsDir = resolve(root, "public/images/albums");
 const port = Number(process.env.ADMIN_PORT || 8787);
 const host = process.env.ADMIN_HOST || "127.0.0.1";
 const password = process.env.ADMIN_PASSWORD;
@@ -650,6 +652,49 @@ async function writeCollection(name, items) {
 	if (name === "music")
 		await addToArtistLibrary(items.map((track) => track.artist));
 }
+function albumDirectory(id) {
+	const directory = resolve(albumsDir, validateAlbumId(id));
+	assertPathInside(albumsDir, directory);
+	return directory;
+}
+
+async function readAlbum(id) {
+	const safeId = validateAlbumId(id);
+	const directory = albumDirectory(safeId);
+	const info = JSON.parse(await readFile(join(directory, "info.json"), "utf8"));
+	const files = await readdir(directory, { withFileTypes: true });
+	const images = files
+		.filter((entry) => entry.isFile() && /\.(avif|gif|jpe?g|png|webp)$/i.test(entry.name))
+		.map((entry) => entry.name)
+		.sort();
+	return { id: safeId, ...normalizeAlbumInfo(info), images };
+}
+
+async function listAlbums() {
+	const entries = await readdir(albumsDir, { withFileTypes: true }).catch(() => []);
+	const albums = await Promise.all(
+		entries.filter((entry) => entry.isDirectory()).map(async (entry) => {
+			try {
+				return await readAlbum(entry.name);
+			} catch {
+				return null;
+			}
+		}),
+	);
+	return albums.filter(Boolean).sort((a, b) => b.date.localeCompare(a.date));
+}
+
+async function writeAlbum(id, value) {
+	const safeId = validateAlbumId(id);
+	const directory = albumDirectory(safeId);
+	await mkdir(directory, { recursive: true });
+	const infoPath = join(directory, "info.json");
+	const source = `${JSON.stringify(normalizeAlbumInfo(value), null, 2)}\n`;
+	await writeFile(`${infoPath}.backup`, await readFile(infoPath, "utf8").catch(() => ""), "utf8");
+	await writeFile(infoPath, source, "utf8");
+	return readAlbum(safeId);
+}
+
 async function handleApi(request, response, pathname) {
 	if (pathname === "/api/login" && request.method === "POST") {
 		const body = await readBody(request);
@@ -679,6 +724,21 @@ async function handleApi(request, response, pathname) {
 		return json(response, 401, { error: "需要身份验证。" });
 	if (pathname === "/api/session")
 		return json(response, 200, { authenticated: true });
+	if (pathname === "/api/albums" && request.method === "GET")
+		return json(response, 200, { items: await listAlbums() });
+	if (pathname === "/api/albums" && request.method === "POST") {
+		const body = await readBody(request);
+		const id = validateAlbumId(body.id || body.title);
+		return json(response, 201, { item: await writeAlbum(id, body) });
+	}
+	if (pathname.startsWith("/api/albums/") && request.method === "GET") {
+		const id = decodeURIComponent(pathname.slice("/api/albums/".length));
+		return json(response, 200, { item: await readAlbum(id) });
+	}
+	if (pathname.startsWith("/api/albums/") && request.method === "PUT") {
+		const id = decodeURIComponent(pathname.slice("/api/albums/".length));
+		return json(response, 200, { item: await writeAlbum(id, await readBody(request)) });
+	}
 	if (pathname === "/api/posts" && request.method === "GET")
 		return json(response, 200, await listPosts());
 	const assetMatch = pathname.match(/^\/api\/posts\/([^/]+)\/assets\/([^/]+)$/);
