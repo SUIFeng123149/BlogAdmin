@@ -24,4 +24,5 @@ test("provides an album workspace in the admin interface", async () => {
 	const page = await readFile(new URL("../public/index.html", import.meta.url), "utf8");
 	assert.match(page, /dataset\.view="albums"/);
 	assert.match(page, /id="albums"/);
+	assert.match(page, /main.*append\(.*albums.*workspace/s);
 });
