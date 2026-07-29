@@ -97,5 +97,35 @@
   </script>
   
   <div id="toast-region" aria-live="polite" aria-atomic="true"></div>
+  <script>
+    const postPlacementControls = document.createElement("div");
+    postPlacementControls.className = "fields";
+    postPlacementControls.innerHTML = '<label>首页分区<select name="contentSection"><option value="">自动归类</option><option value="technical">技术资料</option><option value="notes">个人随笔</option><option value="games">游戏记录</option><option value="other">其他内容</option></select></label><label class="check"><input name="featured" type="checkbox"> 首页精选</label>';
+    document.querySelector("#post-form .actions")?.before(postPlacementControls);
+  </script>
+  <section id="albums" class="view"><div class="panel stack"><div class="topbar"><div><h2>相册</h2><p class="muted">管理相册信息、布局与可见性。</p></div><button class="primary" id="new-album" type="button">新建相册</button></div><div id="album-list" class="post-list"></div><form id="album-form" class="fields hidden"><label>标识<input name="id" required></label><label>标题<input name="title" required></label><label class="full">描述<textarea name="description"></textarea></label><label>日期<input name="date" type="date"></label><label>地点<input name="location"></label><label>布局<select name="layout"><option value="grid">网格</option><option value="masonry">瀑布流</option></select></label><label>列数<input name="columns" type="number" min="1" max="6"></label><label class="check"><input name="hidden" type="checkbox"> 隐藏相册</label><div class="actions full"><button class="primary">保存相册</button></div></form></div></section>
+  <script>
+    const albumNav=document.createElement("button"); albumNav.dataset.view="albums"; albumNav.innerHTML='<span class="nav-symbol">册</span><span class="nav-label">相册</span>'; document.querySelector("nav")?.append(albumNav);
+    let albums=[]; const albumList=document.querySelector("#album-list"),albumForm=document.querySelector("#album-form");
+    async function loadAlbums(){ albums=(await api("/api/albums")).items; albumList.innerHTML=albums.map(a=>`<button class="post-row" data-id="${encodeURIComponent(a.id)}"><span><strong>${escapeHtml(a.title||a.id)}</strong><br><span class="muted">${a.images.length} 张 · ${a.hidden?"隐藏":"可见"}</span></span><span class="post-meta">${escapeHtml(a.date||"")}</span></button>`).join("")||'<p class="muted">暂无相册。</p>'; albumList.querySelectorAll("button").forEach(b=>b.onclick=()=>editAlbum(decodeURIComponent(b.dataset.id))); }
+    async function editAlbum(id){ const {item}=await api(`/api/albums/${encodeURIComponent(id)}`); albumForm.reset(); Object.entries(item).forEach(([k,v])=>{const f=albumForm.elements[k];if(f) f.type==="checkbox"?f.checked=!!v:f.value=v??"";}); albumForm.classList.remove("hidden"); }
+    albumNav.onclick=()=>{show("albums");loadAlbums().catch(e=>showToast("相册加载失败",e.message,"error"));}; document.querySelector("#new-album").onclick=()=>{albumForm.reset();albumForm.elements.columns.value=3;albumForm.classList.remove("hidden");}; albumForm.onsubmit=async e=>{e.preventDefault();const data=Object.fromEntries(new FormData(albumForm));data.hidden=albumForm.elements.hidden.checked;data.columns=Number(data.columns||3);await api(`/api/albums/${encodeURIComponent(data.id)}`,{method:"PUT",body:JSON.stringify(data)});showToast("相册已保存","相册信息已更新。");loadAlbums();};
+  </script>
+  <script>
+    const announcementControls=document.createElement("div"); announcementControls.className="panel stack";
+    announcementControls.innerHTML='<h2>公告</h2><label class="check"><input name="announcementEnabled" type="checkbox"> 启用公告</label><label>公告内容<textarea name="announcementContent" rows="4" maxlength="500"></textarea></label>';
+    document.querySelector("#settings-form .panel:last-child")?.before(announcementControls);
+  </script>
+  <script>
+    const profileControls=document.createElement("div"); profileControls.className="panel stack";
+    profileControls.innerHTML='<h2>个人资料</h2><label>名称<input name="profileName"></label><label>简介<textarea name="profileBio" rows="4" maxlength="500"></textarea></label>';
+    document.querySelector("#settings-form")?.prepend(profileControls);
+  </script>
+  <section id="workspace" class="view"><div class="panel stack"><div class="topbar"><div><h2>发布工作台</h2><p class="muted">查看本地修改后，再按现有流程构建与发布。</p></div><button id="refresh-workspace" class="secondary" type="button">刷新</button></div><div id="workspace-status" class="empty-state">正在读取工作区状态。</div></div></section>
+  <script>
+    const workspaceNav=document.createElement("button"); workspaceNav.dataset.view="workspace"; workspaceNav.innerHTML='<span class="nav-symbol">发</span><span class="nav-label">发布工作台</span>'; document.querySelector("nav")?.append(workspaceNav);
+    async function loadWorkspace(){const data=await api("/api/workspace"); const root=document.querySelector("#workspace-status"); root.innerHTML=data.changed.length?`<strong>${data.changed.length} 个待处理改动</strong><ul>${data.changed.map(path=>`<li>${escapeHtml(path)}</li>`).join("")}</ul>`:"工作区干净，可以安全构建。";}
+    workspaceNav.onclick=()=>{show("workspace");loadWorkspace().catch(e=>showToast("读取失败",e.message,"error"));}; document.querySelector("#refresh-workspace").onclick=()=>loadWorkspace().catch(e=>showToast("读取失败",e.message,"error"));
+  </script>
 </body>
 </html>

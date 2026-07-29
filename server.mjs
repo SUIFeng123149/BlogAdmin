@@ -1,4 +1,6 @@
 import { randomBytes, timingSafeEqual } from "node:crypto";
+import { execFile } from "node:child_process";
+import { promisify } from "node:util";
 import {
 	mkdir,
 	readdir,
@@ -9,6 +11,12 @@ import {
 } from "node:fs/promises";
 import { createServer } from "node:http";
 import { basename, extname, join, resolve } from "node:path";
+import { serializePost } from "./lib/posts.mjs";
+import { normalizeAlbumInfo, validateAlbumId } from "./lib/albums.mjs";
+import { assertPathInside, decodeImageDataUrl } from "./lib/storage.mjs";
+import { parseGitStatus } from "./lib/resources.mjs";
+
+const execFileAsync = promisify(execFile);
 
 const root = process.cwd();
 const adminEnv = await readFile(resolve(root, ".env.admin"), "utf8").catch(
@@ -25,6 +33,7 @@ const publicDir = resolve(root, "admin/public");
 const tagLibraryPath = resolve(root, "admin/tag-library.json");
 const categoryLibraryPath = resolve(root, "admin/category-library.json");
 const artistLibraryPath = resolve(root, "admin/artist-library.json");
+const albumsDir = resolve(root, "public/images/albums");
 const port = Number(process.env.ADMIN_PORT || 8787);
 const host = process.env.ADMIN_HOST || "127.0.0.1";
 const password = process.env.ADMIN_PASSWORD;
@@ -201,8 +210,13 @@ async function saveCollectionMedia(collection, body) {
 		/^data:([^;]+);base64,([\s\S]+)$/,
 	);
 	if (!match) throw new Error("上传数据无效。");
-	const mime = match[1].toLowerCase();
-	const bytes = Buffer.from(match[2], "base64");
+	const { mime, bytes } = decodeImageDataUrl(body.data, [
+		"image/webp",
+		"image/jpeg",
+		"image/png",
+		"image/gif",
+		"audio/mpeg",
+	]);
 	const field = body.field || "cover";
 	let directory;
 	let extension;
@@ -245,7 +259,9 @@ async function saveCollectionMedia(collection, body) {
 		throw new Error("图片必须是有效的 WebP 文件。");
 	await mkdir(directory, { recursive: true });
 	const filename = safeAssetName(body.name, extension);
-	await writeFile(join(directory, filename), bytes);
+	const target = join(directory, filename);
+	assertPathInside(directory, target);
+	await writeFile(target, bytes);
 	return { path: `${publicPath}/${filename}` };
 }
 async function getCategoryOptions() {
@@ -274,8 +290,11 @@ async function savePostAsset(slug, body) {
 		/^data:([^;]+);base64,([\s\S]+)$/,
 	);
 	if (!match) throw new Error("上传数据无效。");
-	const mime = match[1].toLowerCase();
-	const bytes = Buffer.from(match[2], "base64");
+	const { mime, bytes } = decodeImageDataUrl(body.data, [
+		"image/webp",
+		"video/mp4",
+		"video/webm",
+	]);
 	const kind = body.kind === "video" ? "video" : "image";
 	let extension;
 	if (kind === "image") {
@@ -298,7 +317,9 @@ async function savePostAsset(slug, body) {
 		body.cover && kind === "image"
 			? "cover.webp"
 			: safeAssetName(body.name, extension);
-	await writeFile(join(directory, filename), bytes);
+	const target = join(directory, filename);
+	assertPathInside(directory, target);
+	await writeFile(target, bytes);
 	const relative = `./${cleanSlug(slug)}.assets/${filename}`;
 	return {
 		path: relative,
@@ -328,6 +349,9 @@ async function listPosts() {
 					draft: frontmatter.draft === true,
 					category: frontmatter.category || "",
 					tags: frontmatter.tags || [],
+					featured: frontmatter.featured === true,
+					contentSection: frontmatter.contentSection || "",
+					status: frontmatter.status || "",
 				};
 			}),
 	);
@@ -345,6 +369,8 @@ async function readSettings() {
 	return {
 		title: settingValue(source, /title:\s*"([^"]*)"/, ""),
 		subtitle: settingValue(source, /subtitle:\s*"([^"]*)"/, ""),
+		profileName: settingValue(source, /export const profileConfig[\s\S]*?name:\s*"([^"]*)"/, ""),
+		profileBio: settingValue(source, /export const profileConfig[\s\S]*?bio:\s*"([^"]*)"/, ""),
 		themeHue: Number(settingValue(source, /hue:\s*(\d+)/, "35")),
 		bannerEnabled:
 			settingValue(
@@ -367,6 +393,17 @@ async function readSettings() {
 		ogImagesEnabled:
 			settingValue(source, /generateOgImages:\s*(true|false)/, "false") ===
 			"true",
+		announcementEnabled:
+			settingValue(
+				 source,
+				/export const announcementConfig[\s\S]*?enable:\s*(true|false)/,
+				"false",
+			) === "true",
+		announcementContent: settingValue(
+			source,
+			/export const announcementConfig[\s\S]*?content:\s*"([^"]*)"/,
+			"",
+		),
 	};
 }
 
@@ -377,6 +414,8 @@ async function writeSettings(data) {
 	};
 	replace(/title:\s*"[^"]*"/, `title: ${quoteYaml(data.title)}`);
 	replace(/subtitle:\s*"[^"]*"/, `subtitle: ${quoteYaml(data.subtitle)}`);
+	replace(/(export const profileConfig[\s\S]*?name:\s*)"[^"]*"/, `$1${quoteYaml(data.profileName)}`);
+	replace(/(export const profileConfig[\s\S]*?bio:\s*)"[^"]*"/, `$1${quoteYaml(data.profileBio)}`);
 	replace(
 		/hue:\s*\d+/,
 		`hue: ${Math.max(0, Math.min(360, Number(data.themeHue) || 0))}`,
@@ -396,6 +435,14 @@ async function writeSettings(data) {
 	replace(
 		/generateOgImages:\s*(true|false)/,
 		`generateOgImages: ${Boolean(data.ogImagesEnabled)}`,
+	);
+	replace(
+		/(export const announcementConfig[\s\S]*?enable:\s*)(true|false)/,
+		`$1${Boolean(data.announcementEnabled)}`,
+	);
+	replace(
+		/(export const announcementConfig[\s\S]*?content:\s*)"[^"]*"/,
+		`$1${quoteYaml(data.announcementContent)}`,
 	);
 	await writeFile(`${configPath}.backup`, await readFile(configPath));
 	await writeFile(configPath, source, "utf8");
@@ -633,6 +680,56 @@ async function writeCollection(name, items) {
 	if (name === "music")
 		await addToArtistLibrary(items.map((track) => track.artist));
 }
+function albumDirectory(id) {
+	const directory = resolve(albumsDir, validateAlbumId(id));
+	assertPathInside(albumsDir, directory);
+	return directory;
+}
+
+async function readAlbum(id) {
+	const safeId = validateAlbumId(id);
+	const directory = albumDirectory(safeId);
+	const info = JSON.parse(await readFile(join(directory, "info.json"), "utf8"));
+	const files = await readdir(directory, { withFileTypes: true });
+	const images = files
+		.filter((entry) => entry.isFile() && /\.(avif|gif|jpe?g|png|webp)$/i.test(entry.name))
+		.map((entry) => entry.name)
+		.sort();
+	return { id: safeId, ...normalizeAlbumInfo(info), images };
+}
+
+async function listAlbums() {
+	const entries = await readdir(albumsDir, { withFileTypes: true }).catch(() => []);
+	const albums = await Promise.all(
+		entries.filter((entry) => entry.isDirectory()).map(async (entry) => {
+			try {
+				return await readAlbum(entry.name);
+			} catch {
+				return null;
+			}
+		}),
+	);
+	return albums.filter(Boolean).sort((a, b) => b.date.localeCompare(a.date));
+}
+
+async function writeAlbum(id, value) {
+	const safeId = validateAlbumId(id);
+	const directory = albumDirectory(safeId);
+	await mkdir(directory, { recursive: true });
+	const infoPath = join(directory, "info.json");
+	const source = `${JSON.stringify(normalizeAlbumInfo(value), null, 2)}\n`;
+	await writeFile(`${infoPath}.backup`, await readFile(infoPath, "utf8").catch(() => ""), "utf8");
+	await writeFile(infoPath, source, "utf8");
+	return readAlbum(safeId);
+}
+
+async function getWorkspaceStatus() {
+	const { stdout } = await execFileAsync("git", ["status", "--porcelain"], {
+		cwd: root,
+	});
+	return { changed: parseGitStatus(stdout) };
+}
+
 async function handleApi(request, response, pathname) {
 	if (pathname === "/api/login" && request.method === "POST") {
 		const body = await readBody(request);
@@ -662,6 +759,23 @@ async function handleApi(request, response, pathname) {
 		return json(response, 401, { error: "需要身份验证。" });
 	if (pathname === "/api/session")
 		return json(response, 200, { authenticated: true });
+	if (pathname === "/api/workspace" && request.method === "GET")
+		return json(response, 200, await getWorkspaceStatus());
+	if (pathname === "/api/albums" && request.method === "GET")
+		return json(response, 200, { items: await listAlbums() });
+	if (pathname === "/api/albums" && request.method === "POST") {
+		const body = await readBody(request);
+		const id = validateAlbumId(body.id || body.title);
+		return json(response, 201, { item: await writeAlbum(id, body) });
+	}
+	if (pathname.startsWith("/api/albums/") && request.method === "GET") {
+		const id = decodeURIComponent(pathname.slice("/api/albums/".length));
+		return json(response, 200, { item: await readAlbum(id) });
+	}
+	if (pathname.startsWith("/api/albums/") && request.method === "PUT") {
+		const id = decodeURIComponent(pathname.slice("/api/albums/".length));
+		return json(response, 200, { item: await writeAlbum(id, await readBody(request)) });
+	}
 	if (pathname === "/api/posts" && request.method === "GET")
 		return json(response, 200, await listPosts());
 	const assetMatch = pathname.match(/^\/api\/posts\/([^/]+)\/assets\/([^/]+)$/);
@@ -701,7 +815,7 @@ async function handleApi(request, response, pathname) {
 				error: "此文件名已存在。",
 			});
 		} catch {}
-		await writeFile(file, renderPost(body), "utf8");
+		await writeFile(file, serializePost(body), "utf8");
 		await addToTagLibrary(body.tags);
 		await addToCategoryLibrary(body.category);
 		await addToCategoryLibrary(body.category);
@@ -730,7 +844,7 @@ async function handleApi(request, response, pathname) {
 		const currentFile = fileForSlug(currentSlug);
 		const nextFile = fileForSlug(nextSlug);
 		if (currentFile !== nextFile) await rename(currentFile, nextFile);
-		await writeFile(nextFile, renderPost(body), "utf8");
+		await writeFile(nextFile, serializePost(body), "utf8");
 		await addToTagLibrary(body.tags);
 		await addToCategoryLibrary(body.category);
 		await addToCategoryLibrary(body.category);
