@@ -231,6 +231,11 @@ async function saveCollectionMedia(collection, body) {
 		directory = resolve(root, "public/assets/anime");
 		extension = "webp";
 		publicPath = "assets/anime";
+	} else if (collection === "diary") {
+		if (mime !== "image/webp") throw new Error("日记图片必须为 WebP 文件。");
+		directory = resolve(root, "public/assets/diary");
+		extension = "webp";
+		publicPath = "assets/diary";
 	} else if (collection === "music" && field === "cover") {
 		const imageExtensions = {
 			"image/jpeg": "jpg",
@@ -262,7 +267,23 @@ async function saveCollectionMedia(collection, body) {
 	const target = join(directory, filename);
 	assertPathInside(directory, target);
 	await writeFile(target, bytes);
-	return { path: `${publicPath}/${filename}` };
+	return { path: `/${publicPath}/${filename}` };
+}
+
+async function deleteCollectionMedia(collection, filename) {
+	const safeName = basename(filename);
+	const directories = {
+		projects: resolve(root, "public/assets/images"),
+		anime: resolve(root, "public/assets/anime"),
+		diary: resolve(root, "public/assets/diary"),
+		music: resolve(root, "public/assets/music/cover"),
+	};
+	const directory = directories[collection];
+	if (!directory) throw new Error("此集合不支持删除媒体。");
+	const target = join(directory, safeName);
+	assertPathInside(directory, target);
+	await unlink(target);
+	return { deleted: safeName };
 }
 async function getCategoryOptions() {
 	const posts = await listPosts();
@@ -595,6 +616,11 @@ const dataCollections = {
 		symbol: "now",
 		kind: "object",
 	},
+	diary: {
+		file: resolve(root, "src/data/diary.ts"),
+		symbol: "diaryEntries",
+		kind: "array",
+	},
 };
 
 function findLiteralRange(source, symbol, opening) {
@@ -798,6 +824,15 @@ async function handleApi(request, response, pathname) {
 		});
 		return response.end(asset);
 	}
+	if (assetMatch && request.method === "DELETE") {
+		const slug = decodeURIComponent(assetMatch[1]);
+		const filename = basename(decodeURIComponent(assetMatch[2]));
+		const directory = assetDirectoryForSlug(slug);
+		const target = join(directory, filename);
+		assertPathInside(directory, target);
+		await unlink(target);
+		return json(response, 200, { deleted: filename });
+	}
 	if (pathname.startsWith("/api/posts/") && request.method === "GET") {
 		const slug = decodeURIComponent(pathname.slice("/api/posts/".length));
 		const { frontmatter, body } = parseFrontmatter(
@@ -894,6 +929,9 @@ async function handleApi(request, response, pathname) {
 			await saveCollectionMedia(collection, await readBody(request)),
 		);
 	}
+	const collectionAssetDeleteMatch = pathname.match(/^\/api\/data\/([^/]+)\/assets\/([^/]+)$/);
+	if (collectionAssetDeleteMatch && request.method === "DELETE")
+		return json(response, 200, await deleteCollectionMedia(decodeURIComponent(collectionAssetDeleteMatch[1]), decodeURIComponent(collectionAssetDeleteMatch[2])));
 	if (pathname === "/api/data" && request.method === "GET")
 		return json(response, 200, Object.keys(dataCollections));
 	if (pathname.startsWith("/api/data/") && request.method === "GET") {
@@ -934,13 +972,15 @@ const server = createServer(async (request, response) => {
 				"application/javascript; charset=utf-8",
 			);
 		if (
-			url.pathname.startsWith("/assets/images/") ||
+		url.pathname.startsWith("/assets/images/") ||
+		url.pathname.startsWith("/assets/diary/") ||
 			url.pathname.startsWith("/assets/anime/") ||
 			url.pathname.startsWith("/assets/music/")
 		) {
 			const asset = resolve(root, `public${url.pathname}`);
 			const allowed = [
 				resolve(root, "public/assets/images"),
+				resolve(root, "public/assets/diary"),
 				resolve(root, "public/assets/anime"),
 				resolve(root, "public/assets/music"),
 			];
