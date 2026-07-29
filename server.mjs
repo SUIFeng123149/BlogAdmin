@@ -1,4 +1,6 @@
 import { randomBytes, timingSafeEqual } from "node:crypto";
+import { execFile } from "node:child_process";
+import { promisify } from "node:util";
 import {
 	mkdir,
 	readdir,
@@ -12,6 +14,9 @@ import { basename, extname, join, resolve } from "node:path";
 import { serializePost } from "./lib/posts.mjs";
 import { normalizeAlbumInfo, validateAlbumId } from "./lib/albums.mjs";
 import { assertPathInside, decodeImageDataUrl } from "./lib/storage.mjs";
+import { parseGitStatus } from "./lib/resources.mjs";
+
+const execFileAsync = promisify(execFile);
 
 const root = process.cwd();
 const adminEnv = await readFile(resolve(root, ".env.admin"), "utf8").catch(
@@ -718,6 +723,13 @@ async function writeAlbum(id, value) {
 	return readAlbum(safeId);
 }
 
+async function getWorkspaceStatus() {
+	const { stdout } = await execFileAsync("git", ["status", "--porcelain"], {
+		cwd: root,
+	});
+	return { changed: parseGitStatus(stdout) };
+}
+
 async function handleApi(request, response, pathname) {
 	if (pathname === "/api/login" && request.method === "POST") {
 		const body = await readBody(request);
@@ -747,6 +759,8 @@ async function handleApi(request, response, pathname) {
 		return json(response, 401, { error: "需要身份验证。" });
 	if (pathname === "/api/session")
 		return json(response, 200, { authenticated: true });
+	if (pathname === "/api/workspace" && request.method === "GET")
+		return json(response, 200, await getWorkspaceStatus());
 	if (pathname === "/api/albums" && request.method === "GET")
 		return json(response, 200, { items: await listAlbums() });
 	if (pathname === "/api/albums" && request.method === "POST") {
