@@ -1,0 +1,137 @@
+import { config } from "../config.mjs";
+import {
+	cleanSlug,
+	fileForSlug,
+	assetDirectoryForSlug,
+	safeAssetName,
+	parseFrontmatter,
+} from "../utils.mjs";
+import { assertPathInside, decodeImageDataUrl } from "../lib/storage.mjs";
+import { serializePost } from "../lib/posts.mjs";
+import { addToTagLibrary, addToCategoryLibrary } from "./library.mjs";
+import { triggerDeploy } from "./deploy.mjs";
+import {
+	mkdir,
+	readdir,
+	readFile,
+	rename,
+	unlink,
+	writeFile,
+} from "node:fs/promises";
+import { basename, extname, join } from "node:path";
+
+export async function listPosts() {
+	const entries = await readdir(config.postsDir, { withFileTypes: true });
+	const posts = await Promise.all(
+		entries
+			.filter(
+				(entry) =>
+					entry.isFile() && extname(entry.name).toLowerCase() === ".md",
+			)
+			.map(async (entry) => {
+				const slug = basename(entry.name, ".md");
+				const { frontmatter } = parseFrontmatter(
+					await readFile(join(config.postsDir, entry.name), "utf8"),
+				);
+				return {
+					slug,
+					title: frontmatter.title || slug,
+					published: frontmatter.published || "",
+					draft: frontmatter.draft === true,
+					category: frontmatter.category || "",
+					tags: frontmatter.tags || [],
+					featured: frontmatter.featured === true,
+					contentSection: frontmatter.contentSection || "",
+					status: frontmatter.status || "",
+				};
+			}),
+	);
+	return posts.sort((a, b) =>
+		String(b.published).localeCompare(String(a.published)),
+	);
+}
+
+export async function savePostAsset(slug, body) {
+	const match = String(body.data || "").match(
+		/^data:([^;]+);base64,([\s\S]+)$/,
+	);
+	if (!match) throw new Error("上传数据无效。");
+	const { mime, bytes } = decodeImageDataUrl(body.data, [
+		"image/webp",
+		"video/mp4",
+		"video/webm",
+	]);
+	const kind = body.kind === "video" ? "video" : "image";
+	let extension;
+	if (kind === "image") {
+		if (
+			mime !== "image/webp" ||
+			bytes.length < 12 ||
+			bytes.toString("ascii", 0, 4) !== "RIFF" ||
+			bytes.toString("ascii", 8, 12) !== "WEBP"
+		)
+			throw new Error("图片必须是有效的 WebP 文件。");
+		extension = "webp";
+	} else {
+		if (mime === "video/mp4") extension = "mp4";
+		else if (mime === "video/webm") extension = "webm";
+		else throw new Error("视频必须为 MP4 或 WebM 文件。");
+	}
+	const directory = assetDirectoryForSlug(slug);
+	await mkdir(directory, { recursive: true });
+	const filename =
+		body.cover && kind === "image"
+			? "cover.webp"
+			: safeAssetName(body.name, extension);
+	const target = join(directory, filename);
+	assertPathInside(directory, target);
+	await writeFile(target, bytes);
+	const relative = `./${cleanSlug(slug)}.assets/${filename}`;
+	return {
+		path: relative,
+		markdown:
+			kind === "image"
+				? `![${String(body.alt || "image").replace(/[[\]]/g, "")}](${relative})`
+				: `<video controls src="${relative}"></video>`,
+	};
+}
+
+export async function readPost(slug) {
+	const { frontmatter, body } = parseFrontmatter(
+		await readFile(fileForSlug(slug), "utf8"),
+	);
+	return { slug, ...frontmatter, body };
+}
+
+export async function createPost(body) {
+	const slug = cleanSlug(body.slug || body.title);
+	const file = fileForSlug(slug);
+	try {
+		await readFile(file);
+		throw new Error("此文件名已存在。");
+	} catch (error) {
+		if (error.message === "此文件名已存在。") throw error;
+	}
+	await writeFile(file, serializePost(body), "utf8");
+	await addToTagLibrary(body.tags);
+	await addToCategoryLibrary(body.category);
+	await addToCategoryLibrary(body.category);
+	return { slug, deployment: await triggerDeploy() };
+}
+
+export async function updatePost(currentSlug, body) {
+	const nextSlug = cleanSlug(body.slug || currentSlug);
+	const currentFile = fileForSlug(currentSlug);
+	const nextFile = fileForSlug(nextSlug);
+	if (currentFile !== nextFile) await rename(currentFile, nextFile);
+	await writeFile(nextFile, serializePost(body), "utf8");
+	await addToTagLibrary(body.tags);
+	await addToCategoryLibrary(body.category);
+	await addToCategoryLibrary(body.category);
+	return { slug: nextSlug, deployment: await triggerDeploy() };
+}
+
+export async function deletePost(slug) {
+	await unlink(fileForSlug(slug));
+	return { deployment: await triggerDeploy() };
+}

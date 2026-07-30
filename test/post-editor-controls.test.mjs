@@ -3,7 +3,8 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 const page = await readFile(new URL("../public/index.html", import.meta.url), "utf8");
-const server = await readFile(new URL("../server.mjs", import.meta.url), "utf8");
+const mediaSvc = await readFile(new URL("../services/media.mjs", import.meta.url), "utf8");
+const routes = await readFile(new URL("../routes/index.mjs", import.meta.url), "utf8");
 
 test("article editor derives upload storage keys from the title", () => {
 	assert.match(page, /function articleStorageKey\(\)/);
@@ -44,18 +45,18 @@ test("diary editor uploads WebP images and previews the public layout", () => {
 	assert.match(page, /function uploadDiaryImages\(/);
 	assert.match(page, /image\/webp/);
 	assert.match(page, /#diary-preview/);
-	assert.match(server, /collection === "diary"/);
-	assert.match(server, /public\/assets\/diary/);
+	assert.match(mediaSvc, /collection === "diary"/);
+	assert.match(mediaSvc, /public\/assets\/diary/);
 });
 
 test("image upload controls let editors remove the selected asset", () => {
 	assert.match(page, /function deleteArticleCover\(/);
 	assert.match(page, /function attachCollectionImageRemoval\(/);
-	assert.match(server, /assetMatch && request\.method === "DELETE"/);
-	assert.match(server, /function deleteCollectionMedia\(/);
+	assert.match(routes, /assetMatch && request\.method === "DELETE"/);
+	assert.match(mediaSvc, /function deleteCollectionMedia\(/);
 });
 
 test("uploaded public images use root-relative paths and constrained previews", () => {
-	assert.match(server, /path: `\/\$\{publicPath\}\/\$\{filename\}`/);
+	assert.match(mediaSvc, /path: `\/\$\{publicPath\}\/\$\{filename\}`/);
 	assert.match(page, /#diary-preview \[data-diary-images\] img \{[^}]*object-fit:cover/s);
 });
