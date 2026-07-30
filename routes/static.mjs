@@ -56,12 +56,28 @@ export async function servePublicFile(response, urlPathname) {
 	if (urlPathname === "/") urlPathname = "/index.html";
 	const file = resolve(config.publicDir, `.${urlPathname}`);
 	if (!file.startsWith(config.publicDir)) return text(response, 403, "Forbidden.");
-	return text(
-		response,
-		200,
-		await readFile(file, "utf8"),
-		file.endsWith(".html")
-			? "text/html; charset=utf-8"
-			: "text/plain; charset=utf-8",
-	);
+	const extension = extname(file).toLowerCase();
+	const isImage = [".jpg", ".jpeg", ".png", ".gif", ".webp", ".svg"].includes(extension);
+	if (isImage) {
+		const type =
+			extension === ".webp" ? "image/webp"
+			: extension === ".png" ? "image/png"
+			: extension === ".gif" ? "image/gif"
+			: extension === ".svg" ? "image/svg+xml"
+			: "image/jpeg";
+		response.writeHead(200, {
+			"Content-Type": type,
+			"Cache-Control": "public, max-age=86400",
+		});
+		return response.end(await readFile(file));
+	}
+	const contentType =
+		extension === ".css"
+			? "text/css; charset=utf-8"
+			: extension === ".js"
+				? "application/javascript; charset=utf-8"
+				: extension === ".html"
+					? "text/html; charset=utf-8"
+					: "text/plain; charset=utf-8";
+	return text(response, 200, await readFile(file, "utf8"), contentType);
 }

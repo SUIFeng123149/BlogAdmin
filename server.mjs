@@ -3,13 +3,13 @@
 
 import { createServer } from "node:http";
 import { config } from "./config.mjs";
-import { json } from "./utils.mjs";
 import { handleApi } from "./routes/index.mjs";
 import {
 	serveMarkedJs,
-	serveStaticAsset,
 	servePublicFile,
+	serveStaticAsset,
 } from "./routes/static.mjs";
+import { json } from "./utils.mjs";
 
 const server = createServer(async (request, response) => {
 	try {
@@ -45,5 +45,5 @@ const server = createServer(async (request, response) => {
 });
 
 server.listen(config.port, config.host, () =>
-	console.log(`Mizuki 管理后台运行于 http://${config.host}:${config.port}`),
+	console.log(`云栖小筑 管理后台运行于 http://${config.host}:${config.port}`),
 );
