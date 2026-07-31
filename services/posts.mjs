@@ -7,7 +7,7 @@ import {
 	parseFrontmatter,
 } from "../utils.mjs";
 import { assertPathInside, decodeImageDataUrl } from "../lib/storage.mjs";
-import { serializePost } from "../lib/posts.mjs";
+import { currentDate, isVerificationStale, serializePost } from "../lib/posts.mjs";
 import { addToTagLibrary, addToCategoryLibrary } from "./library.mjs";
 import { triggerDeploy } from "./deploy.mjs";
 import {
@@ -112,7 +112,11 @@ export async function createPost(body) {
 	} catch (error) {
 		if (error.message === "此文件名已存在。") throw error;
 	}
-	await writeFile(file, serializePost(body), "utf8");
+	const post = {
+		...body,
+		lastVerified: body.status === "verified" ? currentDate() : "",
+	};
+	await writeFile(file, serializePost(post), "utf8");
 	await addToTagLibrary(body.tags);
 	await addToCategoryLibrary(body.category);
 	await addToCategoryLibrary(body.category);
@@ -123,12 +127,38 @@ export async function updatePost(currentSlug, body) {
 	const nextSlug = cleanSlug(body.slug || currentSlug);
 	const currentFile = fileForSlug(currentSlug);
 	const nextFile = fileForSlug(nextSlug);
+	const { frontmatter: previous } = parseFrontmatter(
+		await readFile(currentFile, "utf8"),
+	);
+	const post = {
+		...body,
+		lastVerified:
+			body.status === "verified" && previous.status !== "verified"
+				? currentDate()
+				: previous.lastVerified || "",
+	};
 	if (currentFile !== nextFile) await rename(currentFile, nextFile);
-	await writeFile(nextFile, serializePost(body), "utf8");
+	await writeFile(nextFile, serializePost(post), "utf8");
 	await addToTagLibrary(body.tags);
 	await addToCategoryLibrary(body.category);
 	await addToCategoryLibrary(body.category);
 	return { slug: nextSlug, deployment: await triggerDeploy() };
+}
+
+export async function markStalePosts() {
+	const entries = await readdir(config.postsDir, { withFileTypes: true });
+	let changed = 0;
+	for (const entry of entries) {
+		if (!entry.isFile() || extname(entry.name).toLowerCase() !== ".md") continue;
+		const file = join(config.postsDir, entry.name);
+		const source = await readFile(file, "utf8");
+		const { frontmatter, body } = parseFrontmatter(source);
+		if (frontmatter.status !== "verified" || !isVerificationStale(frontmatter.lastVerified))
+			continue;
+		await writeFile(file, serializePost({ ...frontmatter, status: "outdated", body }), "utf8");
+		changed += 1;
+	}
+	return { changed, deployment: changed ? await triggerDeploy() : null };
 }
 
 export async function deletePost(slug) {

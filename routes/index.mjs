@@ -6,6 +6,7 @@ import {
 	createPost,
 	updatePost,
 	deletePost,
+	markStalePosts,
 	savePostAsset,
 } from "../services/posts.mjs";
 import { readSettings, writeSettings } from "../services/settings.mjs";
@@ -27,6 +28,7 @@ import {
 	readArtistLibrary,
 	getCategoryOptions,
 	getTechStack,
+	getDataTaxonomies,
 } from "../services/library.mjs";
 import { triggerDeploy } from "../services/deploy.mjs";
 import { randomBytes, timingSafeEqual } from "node:crypto";
@@ -44,6 +46,7 @@ export async function handleApi(request, response, pathname) {
 			!timingSafeEqual(supplied, expected)
 		)
 			return json(response, 401, { error: "密码错误。" });
+		await markStalePosts();
 		const token = randomBytes(32).toString("hex");
 		sessions.set(token, { expires: Date.now() + 8 * 60 * 60 * 1000 });
 		response.writeHead(204, {
@@ -170,6 +173,8 @@ export async function handleApi(request, response, pathname) {
 		return json(response, 200, await readArtistLibrary());
 	if (pathname === "/api/options/tech-stack" && request.method === "GET")
 		return json(response, 200, await getTechStack());
+	if (pathname === "/api/options/data-taxonomies" && request.method === "GET")
+		return json(response, 200, await getDataTaxonomies());
 	if (pathname === "/api/tags" && request.method === "GET")
 		return json(response, 200, await readTagLibrary());
 	if (pathname === "/api/tags" && request.method === "POST") {

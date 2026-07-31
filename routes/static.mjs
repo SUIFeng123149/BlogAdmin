@@ -45,11 +45,12 @@ export async function serveStaticAsset(response, urlPathname) {
 						: extension === ".mp3"
 							? "audio/mpeg"
 							: "application/octet-stream";
+	const content = await readFile(asset);
 	response.writeHead(200, {
 		"Content-Type": type,
 		"Cache-Control": "no-store",
 	});
-	return response.end(await readFile(asset));
+	return response.end(content);
 }
 
 export async function servePublicFile(response, urlPathname) {
@@ -65,11 +66,12 @@ export async function servePublicFile(response, urlPathname) {
 			: extension === ".gif" ? "image/gif"
 			: extension === ".svg" ? "image/svg+xml"
 			: "image/jpeg";
+		const content = await readFile(file);
 		response.writeHead(200, {
 			"Content-Type": type,
 			"Cache-Control": "public, max-age=86400",
 		});
-		return response.end(await readFile(file));
+		return response.end(content);
 	}
 	const contentType =
 		extension === ".css"

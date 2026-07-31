@@ -34,6 +34,18 @@ test("article list combines metadata filters with capped featured management", (
 	assert.doesNotMatch(page, /const featuredNav=/);
 });
 
+test("article editor clears stale field and card selection state", () => {
+	assert.match(page, /function fill\(form, data\) \{ form\.reset\(\);/);
+	assert.match(page, /function clearPostSelection\(\)/);
+	assert.match(page, /if\(view!=="editor"\) clearPostSelection\(\);/);
+});
+
+test("article list filters by status and timestamps verification", () => {
+	assert.match(page, /id="post-status-filter"/);
+	assert.match(page, /verificationStatus\.value==="verified"/);
+	assert.match(page, /lastVerified/);
+});
+
 test("admin manages diary entries as a dedicated data collection", () => {
 	assert.match(page, /data-collection="diary"/);
 	assert.match(page, /templates\.diary=\{id:"",content:"",date:/);

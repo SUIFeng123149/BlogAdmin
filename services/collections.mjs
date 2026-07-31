@@ -110,7 +110,13 @@ export async function writeCollection(name, items) {
 		collection.symbol,
 		collection.kind === "array" ? "[" : "{",
 	);
-	const serialized = JSON.stringify(items, null, 2);
+	const normalizedItems = name === "diary"
+		? items.map((item) => ({
+			...item,
+			date: item.date || new Date().toISOString().slice(0, 16),
+		}))
+		: items;
+	const serialized = JSON.stringify(normalizedItems, null, 2);
 	await writeFile(`${collection.file}.backup`, source, "utf8");
 	await writeFile(
 		collection.file,

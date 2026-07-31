@@ -38,6 +38,10 @@ const server = createServer(async (request, response) => {
 
 		return await servePublicFile(response, pathname);
 	} catch (error) {
+		if (response.headersSent || response.writableEnded) {
+			response.destroy(error instanceof Error ? error : undefined);
+			return;
+		}
 		const message =
 			error instanceof Error ? error.message : "Unexpected server error.";
 		json(response, message.includes("ENOENT") ? 404 : 400, { error: message });

@@ -166,13 +166,40 @@ export async function getTechStack() {
 	const { readCollection } = await import("./collections.mjs");
 	const projects = (await readCollection("projects")).items;
 	const skills = (await readCollection("skills")).items;
+	const timeline = (await readCollection("timeline")).items;
 	const values = [
 		...projects.flatMap((project) =>
 			Array.isArray(project.techStack) ? project.techStack : [],
 		),
 		...skills.map((skill) => skill.name),
+		...timeline.flatMap((item) =>
+			Array.isArray(item.skills) ? item.skills : [],
+		),
 	];
 	return [
 		...new Set(values.map((value) => String(value).trim()).filter(Boolean)),
 	].sort((a, b) => a.localeCompare(b));
+}
+
+export async function getDataTaxonomies() {
+	const { readCollection } = await import("./collections.mjs");
+	const [projects, skills, timeline, artists, techStack] = await Promise.all([
+		readCollection("projects"), readCollection("skills"), readCollection("timeline"),
+		readArtistLibrary(), getTechStack(),
+	]);
+	const unique = (values) => [...new Set(values.map((value) => String(value || "").trim()).filter(Boolean))]
+		.sort((a, b) => a.localeCompare(b));
+	return {
+		projectCategories: unique(["web", "mobile", "desktop", "other", ...projects.items.map((item) => item.category)]),
+		projectStatuses: unique(["planned", "in-progress", "completed", ...projects.items.map((item) => item.status)]),
+		projectTags: unique(projects.items.flatMap((item) => Array.isArray(item.tags) ? item.tags : [])),
+		projectOptions: projects.items
+			.map((item) => ({ id: String(item.id || "").trim(), title: String(item.title || item.id || "").trim() }))
+			.filter((item) => item.id)
+			.sort((a, b) => a.title.localeCompare(b.title)),
+		skillCategories: unique(["frontend", "backend", "database", "tools", "other", ...skills.items.map((item) => item.category)]),
+		timelineTypes: unique(["education", "work", "project", "achievement", ...timeline.items.map((item) => item.type)]),
+		techStack,
+		artists,
+	};
 }
