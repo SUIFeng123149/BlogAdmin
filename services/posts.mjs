@@ -114,6 +114,7 @@ export async function createPost(body) {
 	}
 	const post = {
 		...body,
+		published: currentDate(),
 		lastVerified: body.status === "verified" ? currentDate() : "",
 	};
 	await writeFile(file, serializePost(post), "utf8");
@@ -132,6 +133,7 @@ export async function updatePost(currentSlug, body) {
 	);
 	const post = {
 		...body,
+		published: previous.published || currentDate(),
 		lastVerified:
 			body.status === "verified" && previous.status !== "verified"
 				? currentDate()

@@ -317,7 +317,7 @@
           const result=renderDataFieldsWithTaxonomies(item);
           const root=$("#data-fields");
           const replaceWithOptions=(field,values)=>{ if(!field) return; const select=document.createElement("select"); select.name=field.name; select.innerHTML=values.map(value=>`<option value="${escapeHtml(value)}">${escapeHtml(value)}</option>`).join(""); select.value=field.value; field.replaceWith(select); };
-          if(activeCollection==="projects") { replaceWithOptions(root.querySelector("[name=category]"),dataTaxonomies.projectCategories); replaceWithOptions(root.querySelector("[name=status]"),dataTaxonomies.projectStatuses); renderCheckboxLibrary(root.querySelector("[name=tags][data-collection]"),dataTaxonomies.projectTags,"项目标签"); }
+          if(activeCollection==="projects") { replaceWithOptions(root.querySelector("[name=category]"),dataTaxonomies.projectCategories); replaceWithOptions(root.querySelector("[name=status]"),dataTaxonomies.projectStatuses); renderCheckboxLibrary(root.querySelector("[name=tags][data-collection]"),dataTaxonomies.projectTags,"项目标签"); renderCheckboxLibrary(root.querySelector("[name=techStack][data-collection]"),dataTaxonomies.techStack,"项目技术栈"); }
           if(activeCollection==="skills") {
             replaceWithOptions(root.querySelector("[name=category]"),dataTaxonomies.skillCategories);
             const projectLabels=Object.fromEntries(dataTaxonomies.projectOptions.map(project=>[project.id,project.title])); renderCheckboxLibrary(root.querySelector("[name=projects][data-collection]"),Object.keys(projectLabels),"关联项目"); root.querySelectorAll("[name=projects][data-collection]").forEach(field=>field.parentElement.querySelectorAll("label.check").forEach(option=>{ const value=option.querySelector("input").value; option.lastChild.textContent=projectLabels[value]||value; }));
@@ -343,6 +343,25 @@
           refreshDataTaxonomies().catch(error=>showToast("标签库加载失败",error.message,"error"));
         };
         loadTaxonomiesWhenAuthenticated();
+      </script>
+      <script>
+        let metadataGenerationTimer;
+        function autoGeneratePostMetadata() {
+          if(currentSlug) return;
+          const plainText=postForm.elements.body.value.replace(/```[\s\S]*?```/g,"").replace(/!?(?:\[[^\]]*\])?\([^)]*\)/g,"").replace(/[#>*_`~-]/g," ").replace(/\s+/g," ").trim();
+          postForm.elements.description.value=plainText.slice(0,200);
+          refreshPostCategoryOptions();
+          if(!postCategoryField.value) postCategoryField.value=availablePostCategories(postForm.elements.contentSection.value)[0]||"";
+          const source=[postForm.elements.title.value,postForm.elements.description.value,postForm.elements.body.value].join(" ").toLowerCase();
+          const matches=[...new Set([...tagOptions,...techStackOptions].filter(tag=>tag&&source.includes(String(tag).toLowerCase())))].slice(0,8);
+          if(matches.length) mountPostTags(matches);
+        }
+        [postForm.elements.title,postForm.elements.description,postForm.elements.body,postForm.elements.contentSection].forEach(field=>field.addEventListener("input",()=>{ clearTimeout(metadataGenerationTimer); metadataGenerationTimer=setTimeout(autoGeneratePostMetadata,250); }));
+        postForm.elements.contentSection.addEventListener("change",autoGeneratePostMetadata);
+        postForm.elements.published.readOnly=true;
+        postForm.elements.description.closest("label")?.classList.add("hidden");
+        postCategoryField.closest("label")?.classList.add("hidden");
+        $("#post-tag-picker").closest("label")?.classList.add("hidden");
       </script>
 </body>
 </html>
