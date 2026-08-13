@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- 管理后台 favicon：蓝底 + 白色云朵小屋（方形窗与主站区分） -->
+  <rect width="512" height="512" rx="116" fill="#1976D2"/>
+  <g fill="#FFFFFF">
+    <!-- 云朵 -->
+    <circle cx="198" cy="152" r="42"/>
+    <circle cx="314" cy="152" r="42"/>
+    <circle cx="256" cy="112" r="52"/>
+    <rect x="170" y="148" width="172" height="44" rx="22"/>
+    <!-- 尖顶屋檐 -->
+    <path d="M204 250 L256 192 L308 250 Z"/>
+    <!-- 房身 -->
+    <rect x="212" y="250" width="88" height="110" rx="14"/>
+  </g>
+  <!-- 方形窗（管理面板风格，与主站圆窗区分） -->
+  <rect x="239" y="280" width="34" height="34" rx="8" fill="#1976D2"/>
+</svg>
