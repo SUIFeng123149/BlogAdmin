@@ -1,5 +1,5 @@
 // PDF 课件 → Markdown 转换服务
-// 复用仓库 scripts/pdf2md.py（Python + pdfplumber），通过子进程执行转换。
+// 复用 admin/lib/pdf2md.py（Python + pdfplumber），通过子进程执行转换。
 // 依赖：本机需安装 python3 与 pdfplumber（pip install pdfplumber）。
 
 import { config } from "../config.mjs";
@@ -44,7 +44,7 @@ export async function pdfToMarkdown(body) {
 		throw new Error("PDF 过大，请上传小于 50 MB 的文件。");
 
 	const python = await findPython();
-	const scriptPath = join(config.root, "scripts", "pdf2md.py");
+	const scriptPath = join(config.root, "admin", "lib", "pdf2md.py");
 	const id = randomUUID();
 	const inputPath = join(tmpdir(), `mizuki-pdf-${id}.pdf`);
 	const outputPath = join(tmpdir(), `mizuki-pdf-${id}.md`);
