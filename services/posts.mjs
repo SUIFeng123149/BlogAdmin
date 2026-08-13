@@ -154,8 +154,8 @@ export async function updatePost(currentSlug, body) {
 		...body,
 		published: previous.published || currentDate(),
 		lastVerified:
-			body.status === "verified" && previous.status !== "verified"
-				? currentDate()
+			body.status === "verified"
+				? body.lastVerified || currentDate()
 				: previous.lastVerified || "",
 	};
 	if (currentFile !== nextFile) await rename(currentFile, nextFile);
@@ -177,6 +177,71 @@ export async function markStalePosts() {
 		if (frontmatter.status !== "verified" || !isVerificationStale(frontmatter.lastVerified))
 			continue;
 		await writeFile(file, serializePost({ ...frontmatter, status: "outdated", body }), "utf8");
+		changed += 1;
+	}
+	return { changed, deployment: changed ? await triggerDeploy() : null };
+}
+
+// 列出“待验证”（可能已过时）的文章：outdated 状态，或 verified 但超过复核期限
+export async function listStalePosts() {
+	const entries = await readdir(config.postsDir, { withFileTypes: true });
+	const posts = await Promise.all(
+		entries
+			.filter(
+				(entry) =>
+					entry.isFile() && extname(entry.name).toLowerCase() === ".md",
+			)
+			.map(async (entry) => {
+				const slug = basename(entry.name, ".md");
+				const { frontmatter } = parseFrontmatter(
+					await readFile(join(config.postsDir, entry.name), "utf8"),
+				);
+				const rawStatus = frontmatter.status || "";
+				const effectiveStatus =
+					rawStatus === "verified" &&
+					(!frontmatter.lastVerified ||
+						isVerificationStale(frontmatter.lastVerified))
+						? "outdated"
+						: rawStatus;
+				return {
+					slug,
+					title: frontmatter.title || slug,
+					category: frontmatter.category || "",
+					published: frontmatter.published || "",
+					status: rawStatus,
+					effectiveStatus,
+					lastVerified: frontmatter.lastVerified || "",
+					stale: effectiveStatus === "outdated",
+				};
+			}),
+	);
+	return posts
+		.filter((post) => post.stale || post.status === "outdated")
+		.sort((a, b) => String(b.lastVerified).localeCompare(String(a.lastVerified)));
+}
+
+// 批量重新验证：设为 verified 并将复核时间刷新为今天
+export async function reverifyPosts(slugs) {
+	let changed = 0;
+	for (const slug of Array.isArray(slugs) ? slugs : []) {
+		const file = fileForSlug(slug);
+		let source;
+		try {
+			source = await readFile(file, "utf8");
+		} catch {
+			continue;
+		}
+		const { frontmatter, body } = parseFrontmatter(source);
+		await writeFile(
+			file,
+			serializePost({
+				...frontmatter,
+				status: "verified",
+				lastVerified: currentDate(),
+				body,
+			}),
+			"utf8",
+		);
 		changed += 1;
 	}
 	return { changed, deployment: changed ? await triggerDeploy() : null };

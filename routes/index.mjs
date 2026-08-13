@@ -6,8 +6,9 @@ import {
 	createPost,
 	updatePost,
 	deletePost,
-	markStalePosts,
 	savePostAsset,
+	listStalePosts,
+	reverifyPosts,
 } from "../services/posts.mjs";
 import { readSettings, writeSettings } from "../services/settings.mjs";
 import {
@@ -46,7 +47,6 @@ export async function handleApi(request, response, pathname) {
 			!timingSafeEqual(supplied, expected)
 		)
 			return json(response, 401, { error: "密码错误。" });
-		await markStalePosts();
 		const token = randomBytes(32).toString("hex");
 		sessions.set(token, { expires: Date.now() + 8 * 60 * 60 * 1000 });
 		response.writeHead(204, {
@@ -94,6 +94,18 @@ export async function handleApi(request, response, pathname) {
 	}
 	if (pathname === "/api/posts" && request.method === "GET")
 		return json(response, 200, await listPosts());
+	if (pathname === "/api/posts/stale" && request.method === "GET")
+		return json(response, 200, { items: await listStalePosts() });
+	if (pathname === "/api/posts/reverify" && request.method === "POST") {
+		const body = await readBody(request);
+		return json(
+			response,
+			200,
+			await reverifyPosts(
+				Array.isArray(body.slugs) ? body.slugs.map(String) : [],
+			),
+		);
+	}
 	const assetMatch = pathname.match(/^\/api\/posts\/([^/]+)\/assets\/([^/]+)$/);
 	if (assetMatch && request.method === "GET") {
 		const { assetDirectoryForSlug } = await import("../utils.mjs");
