@@ -112,36 +112,20 @@ export async function handleApi(request, response, pathname) {
 	}
 	const assetMatch = pathname.match(/^\/api\/posts\/([^/]+)\/assets\/([^/]+)$/);
 	if (assetMatch && request.method === "GET") {
-		const { assetDirectoryForSlug } = await import("../utils.mjs");
-		const slug = decodeURIComponent(assetMatch[1]);
+		const { cleanSlug } = await import("../utils.mjs");
+		const slug = cleanSlug(decodeURIComponent(assetMatch[1]));
 		const filename = basename(decodeURIComponent(assetMatch[2]));
-		const extension = extname(filename).toLowerCase();
-		const contentType =
-			extension === ".webp"
-				? "image/webp"
-				: extension === ".mp4"
-					? "video/mp4"
-					: extension === ".webm"
-						? "video/webm"
-						: "application/octet-stream";
-		const { readFile } = await import("node:fs/promises");
-		const asset = await readFile(join(assetDirectoryForSlug(slug), filename));
-		response.writeHead(200, {
-			"Content-Type": contentType,
-			"Cache-Control": "no-store",
-		});
-		return response.end(asset);
+		const { oss } = await import("../config.mjs");
+		const url = `https://${oss.bucket}.${oss.region}.aliyuncs.com/post-assets/${slug}.assets/${encodeURIComponent(filename)}`;
+		response.writeHead(302, { Location: url });
+		return response.end();
 	}
 	if (assetMatch && request.method === "DELETE") {
-		const { assertPathInside } = await import("../lib/storage.mjs");
-		const { assetDirectoryForSlug } = await import("../utils.mjs");
-		const { unlink } = await import("node:fs/promises");
-		const slug = decodeURIComponent(assetMatch[1]);
+		const { cleanSlug } = await import("../utils.mjs");
+		const { deleteObject } = await import("../lib/oss.mjs");
+		const slug = cleanSlug(decodeURIComponent(assetMatch[1]));
 		const filename = basename(decodeURIComponent(assetMatch[2]));
-		const directory = assetDirectoryForSlug(slug);
-		const target = join(directory, filename);
-		assertPathInside(directory, target);
-		await unlink(target);
+		await deleteObject(`post-assets/${slug}.assets/${filename}`);
 		return json(response, 200, { deleted: filename });
 	}
 	if (pathname.startsWith("/api/posts/") && request.method === "GET") {

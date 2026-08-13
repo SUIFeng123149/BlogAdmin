@@ -7,6 +7,7 @@ import {
 	parseFrontmatter,
 } from "../utils.mjs";
 import { assertPathInside, decodeImageDataUrl } from "../lib/storage.mjs";
+import { uploadPostAsset } from "../lib/oss.mjs";
 import sharp from "sharp";
 import { currentDate, isVerificationStale, serializePost } from "../lib/posts.mjs";
 import { addToTagLibrary, addToCategoryLibrary } from "./library.mjs";
@@ -96,22 +97,19 @@ export async function savePostAsset(slug, body) {
 		else if (mime === "video/webm") extension = "webm";
 		else throw new Error("视频必须为 MP4 或 WebM 文件。");
 	}
-	const directory = assetDirectoryForSlug(slug);
-	await mkdir(directory, { recursive: true });
+	const safeSlug = cleanSlug(slug);
 	const filename =
 		body.cover && kind === "image"
 			? "cover.webp"
 			: safeAssetName(body.name, extension);
-	const target = join(directory, filename);
-	assertPathInside(directory, target);
-	await writeFile(target, output);
-	const relative = `./${cleanSlug(slug)}.assets/${filename}`;
+	const contentType = kind === "image" ? "image/webp" : `video/${extension}`;
+	const url = await uploadPostAsset(safeSlug, filename, output, contentType);
 	return {
-		path: relative,
+		path: url,
 		markdown:
 			kind === "image"
-				? `![${String(body.alt || "image").replace(/[[\]]/g, "")}](${relative})`
-				: `<video controls src="${relative}"></video>`,
+				? `![${String(body.alt || "image").replace(/[[\]]/g, "")}](${url})`
+				: `<video controls src="${url}"></video>`,
 	};
 }
 

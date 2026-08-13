@@ -29,6 +29,14 @@ const githubUsername = process.env.GITHUB_USERNAME || "";
 const giteeUsername = process.env.GITEE_USERNAME || "";
 const githubToken = process.env.GITHUB_TOKEN || "";
 const giteeToken = process.env.GITEE_TOKEN || "";
+const oss = process.env.OSS_BUCKET
+	? {
+			region: process.env.OSS_REGION || "oss-cn-beijing",
+			bucket: process.env.OSS_BUCKET,
+			accessKeyId: process.env.OSS_ACCESS_KEY_ID || "",
+			accessKeySecret: process.env.OSS_ACCESS_KEY_SECRET || "",
+		}
+	: null;
 
 if (!password) {
 	console.error("启动管理后台前必须设置 ADMIN_PASSWORD。");
@@ -53,4 +61,5 @@ export const config = {
 	giteeUsername,
 	githubToken,
 	giteeToken,
+	oss,
 };

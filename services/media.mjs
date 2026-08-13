@@ -1,9 +1,9 @@
 import { config } from "../config.mjs";
 import { safeAssetName } from "../utils.mjs";
-import { assertPathInside, decodeImageDataUrl } from "../lib/storage.mjs";
+import { decodeImageDataUrl } from "../lib/storage.mjs";
+import { uploadBuffer, deleteObject } from "../lib/oss.mjs";
 import { decryptNCM, convertToMp3, detectAudioFormat, formatSize } from "../lib/audio.mjs";
-import { mkdir, unlink, writeFile } from "node:fs/promises";
-import { basename, join, resolve } from "node:path";
+import { basename } from "node:path";
 import sharp from "sharp";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
@@ -41,63 +41,53 @@ export async function saveCollectionMedia(collection, body) {
 		throw new Error("图片过大，请上传小于 30 MB 的文件。");
 	const field = body.field || "cover";
 	const isImage = IMAGE_FORMATS.includes(mime);
-	let directory;
+	let keyPrefix;
 	let extension;
 	let publicPath;
 	let output = bytes;
 	if (collection === "projects" || collection === "anime" || collection === "diary") {
 		if (!isImage) throw new Error("图片格式不支持，请上传 PNG、JPEG、GIF、WebP、TIFF 或 AVIF。");
 		if (mime !== "image/webp") output = await imageToWebp(bytes);
-		directory = resolve(
-			config.root,
-			collection === "projects"
-				? "public/assets/images"
-				: collection === "anime"
-					? "public/assets/anime"
-					: "public/assets/diary",
-		);
-		extension = "webp";
-		publicPath =
+		keyPrefix =
 			collection === "projects"
 				? "assets/images"
 				: collection === "anime"
 					? "assets/anime"
 					: "assets/diary";
+		extension = "webp";
+		publicPath = keyPrefix;
 	} else if (collection === "music" && field === "cover") {
 		if (!isImage) throw new Error("音乐封面必须为图片文件。");
 		if (mime !== "image/webp") output = await imageToWebp(bytes);
-		directory = resolve(config.root, "public/assets/music/cover");
+		keyPrefix = "assets/music/cover";
 		extension = "webp";
-		publicPath = "assets/music/cover";
+		publicPath = keyPrefix;
 	} else if (collection === "music" && field === "url") {
 		if (mime !== "audio/mpeg") throw new Error("音乐文件必须为 MP3。");
-		directory = resolve(config.root, "public/assets/music/url");
+		keyPrefix = "assets/music/url";
 		extension = "mp3";
-		publicPath = "assets/music/url";
+		publicPath = keyPrefix;
 	} else {
 		throw new Error("此字段不支持上传。");
 	}
-	await mkdir(directory, { recursive: true });
 	const filename = safeAssetName(body.name, extension);
-	const target = join(directory, filename);
-	assertPathInside(directory, target);
-	await writeFile(target, output);
+	const contentType = extension === "mp3" ? "audio/mpeg" : "image/webp";
+	await uploadBuffer(`${keyPrefix}/${filename}`, output, contentType);
 	return { path: `/${publicPath}/${filename}` };
 }
 
 export async function deleteCollectionMedia(collection, filename) {
 	const safeName = basename(filename);
-	const directories = {
-		projects: resolve(config.root, "public/assets/images"),
-		anime: resolve(config.root, "public/assets/anime"),
-		diary: resolve(config.root, "public/assets/diary"),
-		music: resolve(config.root, "public/assets/music/cover"),
+	const prefixes = {
+		projects: "assets/images",
+		anime: "assets/anime",
+		diary: "assets/diary",
+		music: "assets/music/cover",
+		musicUrl: "assets/music/url",
 	};
-	const directory = directories[collection];
-	if (!directory) throw new Error("此集合不支持删除媒体。");
-	const target = join(directory, safeName);
-	assertPathInside(directory, target);
-	await unlink(target);
+	const prefix = prefixes[collection];
+	if (!prefix) throw new Error("此集合不支持删除媒体。");
+	await deleteObject(`${prefix}/${safeName}`);
 	return { deleted: safeName };
 }
 
