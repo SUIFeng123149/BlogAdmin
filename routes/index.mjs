@@ -196,6 +196,26 @@ export async function handleApi(request, response, pathname) {
 			decodeURIComponent(collectionAssetDeleteMatch[1]),
 			decodeURIComponent(collectionAssetDeleteMatch[2]),
 		));
+	if (pathname === "/api/data/projects/remote" && request.method === "GET") {
+		const { previewRemoteProjects } = await import(
+			"../services/remote-projects.mjs"
+		);
+		return json(response, 200, await previewRemoteProjects());
+	}
+	if (pathname === "/api/data/projects/sync" && request.method === "POST") {
+		const { syncRemoteProjects } = await import(
+			"../services/remote-projects.mjs"
+		);
+		const body = await readBody(request);
+		return json(
+			response,
+			200,
+			await syncRemoteProjects({
+				mode: body.mode || "add-only",
+				ids: Array.isArray(body.ids) ? body.ids : undefined,
+			}),
+		);
+	}
 	if (pathname === "/api/data" && request.method === "GET") {
 		const { dataCollections } = await import("../services/collections.mjs");
 		return json(response, 200, Object.keys(dataCollections));

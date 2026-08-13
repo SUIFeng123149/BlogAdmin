@@ -25,6 +25,10 @@ const host = process.env.ADMIN_HOST || "127.0.0.1";
 const password = process.env.ADMIN_PASSWORD;
 const deployHookUrl = process.env.DEPLOY_HOOK_URL || "";
 const maxBodySize = 80 * 1024 * 1024;
+const githubUsername = process.env.GITHUB_USERNAME || "";
+const giteeUsername = process.env.GITEE_USERNAME || "";
+const githubToken = process.env.GITHUB_TOKEN || "";
+const giteeToken = process.env.GITEE_TOKEN || "";
 
 if (!password) {
 	console.error("启动管理后台前必须设置 ADMIN_PASSWORD。");
@@ -45,4 +49,8 @@ export const config = {
 	password,
 	deployHookUrl,
 	maxBodySize,
+	githubUsername,
+	giteeUsername,
+	githubToken,
+	giteeToken,
 };

@@ -80,6 +80,10 @@ export async function servePublicFile(response, urlPathname) {
 				? "application/javascript; charset=utf-8"
 				: extension === ".html"
 					? "text/html; charset=utf-8"
-					: "text/plain; charset=utf-8";
+					: extension === ".woff2"
+						? "font/woff2"
+						: extension === ".ttf"
+							? "font/ttf"
+							: "text/plain; charset=utf-8";
 	return text(response, 200, await readFile(file, "utf8"), contentType);
 }

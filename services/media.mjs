@@ -11,47 +11,63 @@ import { parseGitStatus } from "../lib/resources.mjs";
 
 const execFileAsync = promisify(execFile);
 
+const IMAGE_FORMATS = [
+	"image/webp",
+	"image/png",
+	"image/jpeg",
+	"image/gif",
+	"image/tiff",
+	"image/avif",
+];
+
+export async function imageToWebp(bytes) {
+	try {
+		return await sharp(bytes).webp({ quality: 80 }).toBuffer();
+	} catch {
+		throw new Error("图片文件无效或已损坏。");
+	}
+}
+
 export async function saveCollectionMedia(collection, body) {
 	const match = String(body.data || "").match(
 		/^data:([^;]+);base64,([\s\S]+)$/,
 	);
 	if (!match) throw new Error("上传数据无效。");
 	const { mime, bytes } = decodeImageDataUrl(body.data, [
-		"image/webp",
-		"image/jpeg",
-		"image/png",
-		"image/gif",
+		...IMAGE_FORMATS,
 		"audio/mpeg",
 	]);
+	if (bytes.length > 30 * 1024 * 1024)
+		throw new Error("图片过大，请上传小于 30 MB 的文件。");
 	const field = body.field || "cover";
+	const isImage = IMAGE_FORMATS.includes(mime);
 	let directory;
 	let extension;
 	let publicPath;
-	if (collection === "projects") {
-		if (mime !== "image/webp") throw new Error("项目图片必须为 WebP 文件。");
-		directory = resolve(config.root, "public/assets/images");
+	let output = bytes;
+	if (collection === "projects" || collection === "anime" || collection === "diary") {
+		if (!isImage) throw new Error("图片格式不支持，请上传 PNG、JPEG、GIF、WebP、TIFF 或 AVIF。");
+		if (mime !== "image/webp") output = await imageToWebp(bytes);
+		directory = resolve(
+			config.root,
+			collection === "projects"
+				? "public/assets/images"
+				: collection === "anime"
+					? "public/assets/anime"
+					: "public/assets/diary",
+		);
 		extension = "webp";
-		publicPath = "assets/images";
-	} else if (collection === "anime") {
-		if (mime !== "image/webp") throw new Error("番剧封面必须为 WebP 文件。");
-		directory = resolve(config.root, "public/assets/anime");
-		extension = "webp";
-		publicPath = "assets/anime";
-	} else if (collection === "diary") {
-		if (mime !== "image/webp") throw new Error("日记图片必须为 WebP 文件。");
-		directory = resolve(config.root, "public/assets/diary");
-		extension = "webp";
-		publicPath = "assets/diary";
+		publicPath =
+			collection === "projects"
+				? "assets/images"
+				: collection === "anime"
+					? "assets/anime"
+					: "assets/diary";
 	} else if (collection === "music" && field === "cover") {
-		const imageExtensions = {
-			"image/jpeg": "jpg",
-			"image/png": "png",
-			"image/webp": "webp",
-			"image/gif": "gif",
-		};
-		extension = imageExtensions[mime];
-		if (!extension) throw new Error("音乐封面必须为图片文件。");
+		if (!isImage) throw new Error("音乐封面必须为图片文件。");
+		if (mime !== "image/webp") output = await imageToWebp(bytes);
 		directory = resolve(config.root, "public/assets/music/cover");
+		extension = "webp";
 		publicPath = "assets/music/cover";
 	} else if (collection === "music" && field === "url") {
 		if (mime !== "audio/mpeg") throw new Error("音乐文件必须为 MP3。");
@@ -61,18 +77,11 @@ export async function saveCollectionMedia(collection, body) {
 	} else {
 		throw new Error("此字段不支持上传。");
 	}
-	if (
-		collection !== "music" &&
-		(bytes.length < 12 ||
-			bytes.toString("ascii", 0, 4) !== "RIFF" ||
-			bytes.toString("ascii", 8, 12) !== "WEBP")
-	)
-		throw new Error("图片必须是有效的 WebP 文件。");
 	await mkdir(directory, { recursive: true });
 	const filename = safeAssetName(body.name, extension);
 	const target = join(directory, filename);
 	assertPathInside(directory, target);
-	await writeFile(target, bytes);
+	await writeFile(target, output);
 	return { path: `/${publicPath}/${filename}` };
 }
 

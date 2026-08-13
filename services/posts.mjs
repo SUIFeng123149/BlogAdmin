@@ -7,6 +7,7 @@ import {
 	parseFrontmatter,
 } from "../utils.mjs";
 import { assertPathInside, decodeImageDataUrl } from "../lib/storage.mjs";
+import sharp from "sharp";
 import { currentDate, isVerificationStale, serializePost } from "../lib/posts.mjs";
 import { addToTagLibrary, addToCategoryLibrary } from "./library.mjs";
 import { triggerDeploy } from "./deploy.mjs";
@@ -56,21 +57,39 @@ export async function savePostAsset(slug, body) {
 		/^data:([^;]+);base64,([\s\S]+)$/,
 	);
 	if (!match) throw new Error("上传数据无效。");
-	const { mime, bytes } = decodeImageDataUrl(body.data, [
+		const { mime, bytes } = decodeImageDataUrl(body.data, [
 		"image/webp",
+		"image/png",
+		"image/jpeg",
+		"image/gif",
+		"image/tiff",
+		"image/avif",
 		"video/mp4",
 		"video/webm",
 	]);
+	if (bytes.length > 30 * 1024 * 1024)
+		throw new Error("图片过大，请上传小于 30 MB 的文件。");
 	const kind = body.kind === "video" ? "video" : "image";
 	let extension;
+	let output = bytes;
 	if (kind === "image") {
-		if (
-			mime !== "image/webp" ||
-			bytes.length < 12 ||
-			bytes.toString("ascii", 0, 4) !== "RIFF" ||
-			bytes.toString("ascii", 8, 12) !== "WEBP"
-		)
-			throw new Error("图片必须是有效的 WebP 文件。");
+		const imageFormats = new Set([
+			"image/webp",
+			"image/png",
+			"image/jpeg",
+			"image/gif",
+			"image/tiff",
+			"image/avif",
+		]);
+		if (!imageFormats.has(mime))
+			throw new Error("图片格式不支持，请上传 PNG、JPEG、GIF、WebP、TIFF 或 AVIF。");
+		if (mime !== "image/webp") {
+			try {
+				output = await sharp(bytes).webp({ quality: 80 }).toBuffer();
+			} catch {
+				throw new Error("图片文件无效或已损坏。");
+			}
+		}
 		extension = "webp";
 	} else {
 		if (mime === "video/mp4") extension = "mp4";
@@ -85,7 +104,7 @@ export async function savePostAsset(slug, body) {
 			: safeAssetName(body.name, extension);
 	const target = join(directory, filename);
 	assertPathInside(directory, target);
-	await writeFile(target, bytes);
+	await writeFile(target, output);
 	const relative = `./${cleanSlug(slug)}.assets/${filename}`;
 	return {
 		path: relative,
