@@ -30,7 +30,7 @@
   <div id="app" class="hidden"><aside><div class="sidebar-top"><div class="brand"><span class="brand-mark">M</span><div class="brand-copy"><h1>云栖小筑 管理</h1><p class="muted">静态博客工作区</p></div></div><button class="icon-button" id="sidebar-toggle" type="button" title="收起侧边栏" aria-label="收起侧边栏">&#8249;</button></div><nav><button data-view="posts" class="active"><span class="nav-symbol">文</span><span class="nav-label">文章</span></button><button data-view="data"><span class="nav-symbol">数</span><span class="nav-label">数据中心</span></button><button data-view="settings"><span class="nav-symbol">设</span><span class="nav-label">站点设置</span></button><div class="nav-group expanded"><button class="nav-group-toggle" type="button"><span class="nav-symbol">具</span><span class="nav-label">处理工具</span><span class="nav-chevron">▼</span></button><div class="nav-sub-items"><button data-view="convert"><span class="nav-symbol">转</span><span class="nav-label">转 WebP</span></button><button data-view="audioconvert"><span class="nav-symbol">音</span><span class="nav-label">转 MP3</span></button></div></div></nav><div></div><button class="secondary" id="logout">退出登录</button></aside>
   <main><div class="topbar"><div><h1 id="page-title">文章</h1><p class="muted">修改内容自动保存到仓库源文件。</p></div><p id="status" class="status" role="status"></p></div>
     <section id="posts" class="view active"><div class="filter-bar"><button class="primary" id="new-post">新建文章</button><input id="search" placeholder="搜索文章" aria-label="搜索文章"><button class="filter-toggle" id="filter-toggle" type="button">▼ 筛选</button></div><div id="filter-panel" class="filter-panel"><select id="post-category-filter" aria-label="按分类筛选"><option value="">全部分类</option></select><select id="post-tag-filter" aria-label="按标签筛选"><option value="">全部标签</option></select><select id="post-date-filter" aria-label="按日期筛选"><option value="">全部日期</option></select><select id="post-featured-filter" aria-label="按精选状态筛选"><option value="">全部文章</option><option value="true">仅首页精选</option><option value="false">非精选文章</option></select></div><div id="post-list" class="post-list" style="margin-top:16px"></div><div id="pagination" class="pagination hidden"></div></section>
-    <section id="editor" class="view"><form id="post-form" class="editor-grid"><div class="panel stack"><label>标题<input name="title" required></label><div id="markdown-drop-zone" class="markdown-drop-zone markdown-mode-split"><div class="markdown-toolbar"><strong>Markdown</strong><div class="mode-switch" role="group" aria-label="Markdown 编辑模式"><button type="button" data-markdown-mode="edit">编辑</button><button type="button" data-markdown-mode="preview">预览</button><button type="button" data-markdown-mode="split" class="active">分屏</button></div></div><div class="markdown-workspace"><label class="markdown-editor-label"><span class="sr-only">Markdown 源码</span><textarea name="body" rows="24"></textarea></label><article id="markdown-preview" class="markdown-preview" aria-label="Markdown 预览"></article></div><div class="markdown-import"><span>拖入 Markdown、图片（自动转 WebP）或 MP4/WebM 视频</span><div class="media-actions"><button class="secondary" type="button" id="import-markdown">导入 .md</button><button class="secondary" type="button" id="upload-image">上传图片</button><button class="secondary" type="button" id="upload-video">上传视频</button></div><input id="markdown-file-input" type="file" accept=".md,text/markdown" class="hidden"><input id="image-file-input" type="file" accept="image/png,image/jpeg,image/gif,image/webp,image/tiff,image/avif,.png,.jpg,.jpeg,.gif,.webp,.tiff,.tif,.avif" class="hidden"><input id="video-file-input" type="file" accept="video/mp4,video/webm,.mp4,.webm" class="hidden"></div></div></div><div class="panel stack"><label>文件名<input name="slug" required pattern="[^\\/:*?&quot;&lt;&gt;|]+"></label><div class="fields"><label>发布日期<input name="published" type="date"></label><label>分类<input name="category" list="category-options" placeholder="选择或输入分类"></label><label>标签<input name="tags" class="hidden"><div id="post-tag-picker" class="tag-picker"></div></label></div><label class="description-field">描述<textarea name="description" rows="8" maxlength="600" placeholder="写一段 10-200 字的清晰摘要"></textarea><span class="field-hint">推荐 10-200 字</span></label><label class="cover-field">封面图片<input name="image" readonly placeholder="上传封面（自动转 WebP）"></label><div id="cover-upload-zone" class="cover-upload-zone"><span>在此拖放封面（自动转 WebP）</span><button class="secondary" type="button" id="upload-cover">上传封面</button><input id="cover-file-input" type="file" accept="image/png,image/jpeg,image/gif,image/webp,image/tiff,image/avif,.png,.jpg,.jpeg,.gif,.webp,.tiff,.tif,.avif" class="hidden"></div><a id="cover-thumbnail" class="image-thumbnail hidden" href="#" aria-label="查看完整封面"><img id="cover-preview" alt="文章封面预览"></a><label>系列<input name="series"></label><div class="fields"><label>系列序号<input name="seriesOrder" type="number" min="1"></label><label>状态<select name="status"><option value="">未设置</option><option value="verified">已验证</option><option value="maintenance">维护中</option><option value="outdated">可能已过时</option></select></label></div><label>测试环境<input name="testedOn"></label><label>最后验证<input name="lastVerified" type="date"></label><label class="check"><input name="draft" type="checkbox"> 仅草稿</label><div class="actions"><button class="danger hidden" type="button" id="delete-post">删除</button><button class="secondary" type="button" id="cancel-edit">取消</button><button class="primary">保存文章</button></div></div></form></section>
+    <section id="editor" class="view"><form id="post-form" class="editor-grid"><div class="panel stack"><label>标题<input name="title" required></label><div id="markdown-drop-zone" class="markdown-drop-zone markdown-mode-split"><div class="markdown-toolbar"><strong>Markdown</strong><div class="mode-switch" role="group" aria-label="Markdown 编辑模式"><button type="button" data-markdown-mode="edit">编辑</button><button type="button" data-markdown-mode="preview">预览</button><button type="button" data-markdown-mode="split" class="active">分屏</button></div></div><div class="markdown-workspace"><label class="markdown-editor-label"><span class="sr-only">Markdown 源码</span><textarea name="body" rows="24"></textarea></label><article id="markdown-preview" class="markdown-preview" aria-label="Markdown 预览"></article></div><div class="markdown-import"><span>拖入 Markdown、PDF（自动转 Markdown）、图片（自动转 WebP）或 MP4/WebM 视频</span><div class="media-actions"><button class="secondary" type="button" id="import-markdown">导入 .md</button><button class="secondary" type="button" id="import-pdf">导入 PDF</button><button class="secondary" type="button" id="upload-image">上传图片</button><button class="secondary" type="button" id="upload-video">上传视频</button></div><input id="markdown-file-input" type="file" accept=".md,text/markdown" class="hidden"><input id="pdf-file-input" type="file" accept=".pdf,application/pdf" class="hidden"><input id="image-file-input" type="file" accept="image/png,image/jpeg,image/gif,image/webp,image/tiff,image/avif,.png,.jpg,.jpeg,.gif,.webp,.tiff,.tif,.avif" class="hidden"><input id="video-file-input" type="file" accept="video/mp4,video/webm,.mp4,.webm" class="hidden"></div></div></div><div class="panel stack"><label>文件名<input name="slug" required pattern="[^\\/:*?&quot;&lt;&gt;|]+"></label><div class="fields"><label>发布日期<input name="published" type="date"></label><label>分类<input name="category" list="category-options" placeholder="选择或输入分类"></label><label>标签<input name="tags" class="hidden"><div id="post-tag-picker" class="tag-picker"></div></label></div><label class="description-field">描述<textarea name="description" rows="8" maxlength="600" placeholder="写一段 10-200 字的清晰摘要"></textarea><span class="field-hint">推荐 10-200 字</span></label><label class="cover-field">封面图片<input name="image" readonly placeholder="上传封面（自动转 WebP）"></label><div id="cover-upload-zone" class="cover-upload-zone"><span>在此拖放封面（自动转 WebP）</span><button class="secondary" type="button" id="upload-cover">上传封面</button><input id="cover-file-input" type="file" accept="image/png,image/jpeg,image/gif,image/webp,image/tiff,image/avif,.png,.jpg,.jpeg,.gif,.webp,.tiff,.tif,.avif" class="hidden"></div><a id="cover-thumbnail" class="image-thumbnail hidden" href="#" aria-label="查看完整封面"><img id="cover-preview" alt="文章封面预览"></a><label>系列<input name="series"></label><div class="fields"><label>系列序号<input name="seriesOrder" type="number" min="1"></label><label>状态<select name="status"><option value="">未设置</option><option value="verified">已验证</option><option value="maintenance">维护中</option><option value="outdated">可能已过时</option></select></label></div><label>测试环境<input name="testedOn"></label><label>最后验证<input name="lastVerified" type="date"></label><label class="check"><input name="draft" type="checkbox"> 仅草稿</label><div class="actions"><button class="danger hidden" type="button" id="delete-post">删除</button><button class="secondary" type="button" id="cancel-edit">取消</button><button class="primary">保存文章</button></div></div></form></section>
     <section id="data" class="view"><div class="data-layout"><aside class="panel data-navigation"><div class="data-nav-header"><div><span class="data-eyebrow">内容</span><h2>站点数据</h2></div><span class="data-total">5</span></div><div class="collection-tabs" id="collection-tabs"><button data-collection="projects" class="active"><span class="collection-icon">项</span><span>项目</span></button><button data-collection="skills"><span class="collection-icon">技</span><span>技能</span></button><button data-collection="timeline"><span class="collection-icon">时</span><span>时间线</span></button><button data-collection="now"><span class="collection-icon">此</span><span>此刻</span></button><button data-collection="music"><span class="collection-icon">音</span><span>音乐</span></button></div><p class="data-nav-note">每个集合存储在其对应的源数据文件中。</p></aside><div class="data-detail"><div class="data-commandbar"><div><span class="data-eyebrow">管理</span><h2 id="data-workspace-title">项目</h2></div><div class="toolbar"><button class="primary" id="new-data-item">新建</button><button class="secondary hidden" id="sync-projects" type="button">从仓库拉取</button><button class="secondary" id="save-data" disabled>保存集合</button></div></div><div class="data-workspace"><section class="panel data-list-panel"><div class="data-list-heading"><div><h3>列表</h3><p id="data-item-count" class="muted">0 项</p></div></div><div id="data-list" class="data-list"></div></section><form id="data-form" class="panel data-form-panel stack"><div class="data-form-heading"><div><h3>详情</h3><p class="muted">选择一个项目以编辑其字段。</p></div></div><div id="data-fields" class="data-fields"></div><div class="actions"><button class="danger hidden" id="delete-data-item" type="button">删除</button></div></form></div></div></div></section>    <section id="settings" class="view"><form id="settings-form" class="settings"><div class="panel stack"><h2>核心设置</h2><div class="fields"><label>站点标题<input name="title" required></label><label>主题色相<input name="themeHue" type="number" min="0" max="360"></label></div><label>副标题<input name="subtitle"></label></div><div class="panel stack"><h2>功能开关</h2><label class="check"><input name="bannerEnabled" type="checkbox"> 启用横幅</label><label class="check"><input name="commentsEnabled" type="checkbox"> 启用评论</label><label class="check"><input name="musicEnabled" type="checkbox"> 启用音乐播放器</label><label class="check"><input name="ogImagesEnabled" type="checkbox"> 生成分享图</label><div class="actions"><button class="primary">保存设置</button></div></div></form></section>
     <section id="convert" class="view"><div class="panel stack convert-panel"><div class="convert-header"><h2>图片转 WebP</h2><p class="muted">支持 PNG、JPEG、GIF、TIFF、AVIF 格式，自动转换为高效 WebP 格式。</p></div><div class="convert-layout"><div class="convert-upload"><div id="convert-drop-zone" class="convert-drop-zone"><div class="convert-drop-icon">+</div><p>拖放图片到此处</p><p class="muted">或点击下方按钮选择</p><button class="secondary" type="button" id="convert-select-btn">选择图片</button><input id="convert-file-input" type="file" accept="image/png,image/jpeg,image/gif,image/tiff,image/avif,.png,.jpg,.jpeg,.gif,.tiff,.tif,.avif" multiple class="hidden"></div><div id="convert-queue" class="convert-queue hidden"></div></div><div class="convert-controls"><label>质量 <span id="convert-quality-label">80</span><input id="convert-quality" type="range" min="1" max="100" value="80" step="1"></label><div class="convert-actions"><button class="primary" id="convert-start" disabled>开始转换</button><button class="secondary" id="convert-clear" disabled>清空列表</button></div><div id="convert-results" class="convert-results hidden"></div></div></div></div></section>
     <section id="audioconvert" class="view"><div class="panel stack convert-panel"><div class="convert-header"><h2>音频转 MP3</h2><p class="muted">支持 FLAC、WAV、AAC、OGG、M4A、WMA、NCM（网易云音乐）等格式，转换为 MP3。</p></div><div class="convert-layout"><div class="convert-upload"><div id="audio-drop-zone" class="convert-drop-zone"><div class="convert-drop-icon">♪</div><p>拖放音频文件到此处</p><p class="muted">或点击下方按钮选择</p><button class="secondary" type="button" id="audio-select-btn">选择音频文件</button><input id="audio-file-input" type="file" accept=".ncm,.flac,.wav,.aac,.ogg,.m4a,.wma,.opus,.mp3" multiple class="hidden"></div><div id="audio-queue" class="convert-queue hidden"></div></div><div class="convert-controls"><label>比特率 <span id="audio-bitrate-label">192</span> kbps<input id="audio-bitrate" type="range" min="64" max="320" value="192" step="32"></label><div class="convert-actions"><button class="primary" id="audio-start" disabled>开始转换</button><button class="secondary" id="audio-clear" disabled>清空列表</button></div><div id="audio-results" class="convert-results hidden"></div></div></div></div></section>
@@ -126,9 +126,9 @@
     function refreshArticleCover() { const path=$("#post-form").elements.image.value; const src=articleAssetPreviewPath(path); const thumb=$("#cover-thumbnail"); if(!src) { thumb.classList.add("hidden"); return; } $("#cover-preview").src=src; thumb.href=src; thumb.classList.remove("hidden"); thumb.onclick=event=>{event.preventDefault(); openImageLightbox(src,"文章封面");}; }
     async function uploadArticleCover(file, button) { const slug=currentSlug||$("#post-form").elements.slug.value.trim(); if(!slug) { showToast("封面上传需要文件名","请先填写文章文件名。","error"); return; } if(!file || !["image/webp","image/png","image/jpeg","image/gif","image/tiff","image/avif"].includes(file.type)) { showToast("图片格式不支持","请上传 PNG、JPEG、GIF、WebP、TIFF 或 AVIF 图片，将自动转为 WebP。","error"); return; } try { const data=await new Promise((resolve,reject)=>{const reader=new FileReader(); reader.onload=()=>resolve(reader.result); reader.onerror=()=>reject(new Error("文件无法读取。")); reader.readAsDataURL(file);}); const result=await runButtonAction(button,"上传中...","封面上传成功",()=>api(`/api/posts/${encodeURIComponent(slug)}/assets`,{method:"POST",body:JSON.stringify({name:file.name,data,kind:"image",cover:true,alt:"cover"})})); $("#post-form").elements.image.value=result.path; refreshArticleCover(); showToast("封面路径已添加","保存文章即可发布封面引用。"); } catch(error) { showToast("封面上传失败",error.message||"封面未上传。","error"); } }
     async function uploadPostMedia(file, kind, button) { const slug=currentSlug||$("#post-form").elements.slug.value.trim(); if(!slug) { showToast("上传需要文件名","请先填写文章文件名。","error"); return; } if(kind==="image" && !["image/webp","image/png","image/jpeg","image/gif","image/tiff","image/avif"].includes(file.type)) { showToast("图片格式不支持","请上传 PNG、JPEG、GIF、WebP、TIFF 或 AVIF 图片，将自动转为 WebP。","error"); return; } if(kind==="video" && !["video/mp4","video/webm"].includes(file.type)) { showToast("视频格式不支持","视频必须为 MP4 或 WebM 文件。","error"); return; } try { const data=await new Promise((resolve,reject)=>{ const reader=new FileReader(); reader.onload=()=>resolve(reader.result); reader.onerror=()=>reject(new Error("文件无法读取。")); reader.readAsDataURL(file); }); const result=await runButtonAction(button,kind==="image"?"上传中...":"上传中...",kind==="image"?"图片已上传":"视频已上传",()=>api(`/api/posts/${encodeURIComponent(slug)}/assets`,{method:"POST",body:JSON.stringify({name:file.name,data,kind,alt:file.name.replace(/\.[^.]+$/,"")})})); insertMarkdownAtCursor(result.markdown); showToast("媒体已插入","媒体路径已添加到 Markdown，保存文章即可发布。"); } catch(error) { showToast("上传失败",error.message||"媒体未上传。","error"); } }
-    function handleEditorFile(file) { if(!file) return; if(file.name.toLowerCase().endsWith(".md")) return importMarkdownFile(file); if(file.type.startsWith("image/")) return uploadPostMedia(file,"image",$("#upload-image")); if(["video/mp4","video/webm"].includes(file.type)) return uploadPostMedia(file,"video",$("#upload-video")); showToast("不支持的文件类型","请使用 Markdown、图片、MP4 或 WebM 文件。","error"); }
+    function handleEditorFile(file) { if(!file) return; if(file.name.toLowerCase().endsWith(".md")) return importMarkdownFile(file); if(file.name.toLowerCase().endsWith(".pdf")) return importPdfFile(file); if(file.type.startsWith("image/")) return uploadPostMedia(file,"image",$("#upload-image")); if(["video/mp4","video/webm"].includes(file.type)) return uploadPostMedia(file,"video",$("#upload-video")); showToast("不支持的文件类型","请使用 Markdown、PDF、图片、MP4 或 WebM 文件。","error"); }
     const coverUploadZone=$("#cover-upload-zone"); $("#upload-cover").onclick=()=>$("#cover-file-input").click(); $("#cover-file-input").onchange=event=>{ uploadArticleCover(event.target.files[0],$("#upload-cover")); event.target.value=""; }; ["dragenter","dragover"].forEach(type=>coverUploadZone.addEventListener(type,event=>{event.preventDefault(); coverUploadZone.classList.add("is-dragging");})); ["dragleave","drop"].forEach(type=>coverUploadZone.addEventListener(type,event=>{event.preventDefault(); coverUploadZone.classList.remove("is-dragging");})); coverUploadZone.addEventListener("drop",event=>uploadArticleCover(event.dataTransfer.files[0],$("#upload-cover")));
-    const markdownDropZone=$("#markdown-drop-zone"); $("#import-markdown").onclick=()=>$("#markdown-file-input").click(); $("#upload-image").onclick=()=>$("#image-file-input").click(); $("#upload-video").onclick=()=>$("#video-file-input").click(); $("#markdown-file-input").onchange=event=>handleEditorFile(event.target.files[0]); $("#image-file-input").onchange=event=>handleEditorFile(event.target.files[0]); $("#video-file-input").onchange=event=>handleEditorFile(event.target.files[0]); ["dragenter","dragover"].forEach(type=>markdownDropZone.addEventListener(type,event=>{event.preventDefault(); markdownDropZone.classList.add("is-dragging");})); ["dragleave","drop"].forEach(type=>markdownDropZone.addEventListener(type,event=>{event.preventDefault(); markdownDropZone.classList.remove("is-dragging");})); markdownDropZone.addEventListener("drop",event=>handleEditorFile(event.dataTransfer.files[0]));
+    const markdownDropZone=$("#markdown-drop-zone"); $("#import-markdown").onclick=()=>$("#markdown-file-input").click(); $("#import-pdf").onclick=()=>$("#pdf-file-input").click(); $("#upload-image").onclick=()=>$("#image-file-input").click(); $("#upload-video").onclick=()=>$("#video-file-input").click(); $("#markdown-file-input").onchange=event=>handleEditorFile(event.target.files[0]); $("#pdf-file-input").onchange=event=>{ handleEditorFile(event.target.files[0]); event.target.value=""; }; $("#image-file-input").onchange=event=>handleEditorFile(event.target.files[0]); $("#video-file-input").onchange=event=>handleEditorFile(event.target.files[0]); ["dragenter","dragover"].forEach(type=>markdownDropZone.addEventListener(type,event=>{event.preventDefault(); markdownDropZone.classList.add("is-dragging");})); ["dragleave","drop"].forEach(type=>markdownDropZone.addEventListener(type,event=>{event.preventDefault(); markdownDropZone.classList.remove("is-dragging");})); markdownDropZone.addEventListener("drop",event=>handleEditorFile(event.dataTransfer.files[0]));
     $("#delete-post").onclick=async()=>{ if(!currentSlug||!confirm("确定永久删除此文章？")) return; try { await api("/api/posts/"+encodeURIComponent(currentSlug),{method:"DELETE"}); setStatus("文章已删除。"); await loadPosts(); show("posts"); } catch(err) { setStatus(err.message,true); }};
     $("#settings-form").onsubmit=async e=>{e.preventDefault(); const data=Object.fromEntries(new FormData(e.currentTarget)); for(const key of ["bannerEnabled","commentsEnabled","musicEnabled","ogImagesEnabled"]) data[key]=e.currentTarget.elements[key].checked; try { const result=await runButtonAction(e.submitter||e.currentTarget.querySelector(".primary"),"保存中...","设置已保存",()=>api("/api/settings",{method:"PUT",body:JSON.stringify(data)})); setStatus(result.deployment.status==="triggered"?"已保存，部署已触发。":"设置已保存到源文件。"); } catch(err) { setStatus(err.message,true); showToast("设置未保存",err.message,"error"); }};
     let activeCollection = "projects"; let collectionItems = []; let activeItem = -1; let formDrafts = {};
@@ -305,6 +305,7 @@
     function refreshMarkdownPreview() { const preview=$("#markdown-preview"); if(!window.marked) { preview.textContent="正在加载 Markdown 预览..."; return; } window.marked.setOptions({ breaks:true, gfm:true }); preview.innerHTML=window.marked.parse(postForm.elements.body.value||""); const slug=articleStorageKey(); if(slug) preview.querySelectorAll("img[src],video[src],video source[src]").forEach(media=>{ const raw=media.getAttribute("src")||""; if(raw.startsWith("./")&&raw.includes(".assets/")) media.setAttribute("src",`/api/posts/${encodeURIComponent(slug)}/assets/${encodeURIComponent(raw.split("/").pop())}`); }); addPreviewHeadingAnchors(preview); if(!preview.innerHTML.trim()) preview.innerHTML='<p class="muted">开始写作即可看到预览。</p>'; }
     function articleAssetPreviewPath(path) { const slug=articleStorageKey(); return !path||!slug||!String(path).includes(".assets/") ? "" : `/api/posts/${encodeURIComponent(slug)}/assets/${encodeURIComponent(String(path).split("/").pop())}`; }
     async function importMarkdownFile(file) { if(!file||!file.name.toLowerCase().endsWith(".md")) { showToast("导入失败","请选择 .md 文件。","error"); return; } try { const parsed=parseMarkdownFile(await file.text()); fill(postForm,{...parsed.frontmatter,body:parsed.body}); if(parsed.frontmatter.tags) mountPostTags(parsed.frontmatter.tags); if(!postForm.elements.title.value.trim()) postForm.elements.title.value=file.name.replace(/\.md$/i,""); refreshMarkdownPreview(); showToast("Markdown 已导入",`${file.name} 已就绪，可检查后保存。`); } catch(error) { showToast("导入失败",error.message||"无法读取该 Markdown 文件。","error"); } }
+    async function importPdfFile(file) { if(!file||!/\.pdf$/i.test(file.name)) { showToast("导入失败","请选择 .pdf 文件。","error"); return; } try { const data=await new Promise((resolve,reject)=>{ const reader=new FileReader(); reader.onload=()=>resolve(reader.result); reader.onerror=()=>reject(new Error("文件无法读取。")); reader.readAsDataURL(file); }); const result=await api("/api/pdf-to-markdown",{method:"POST",body:JSON.stringify({name:file.name,data})}); postForm.elements.body.value=result.markdown; refreshMarkdownPreview(); if(!postForm.elements.title.value.trim()) postForm.elements.title.value=(result.title||file.name).replace(/\.pdf$/i,""); showToast("PDF 已转换",`${file.name} 已转为 Markdown 并写入编辑区，检查后可手动保存。`); } catch(error) { showToast("转换失败",error.message||"PDF 转换失败。","error"); } }
     async function uploadArticleCover(file, button) { const slug=articleStorageKey(); if(!slug) { showToast("封面上传需要标题","请先填写文章标题。","error"); return; } if(!file||!["image/webp","image/png","image/jpeg","image/gif","image/tiff","image/avif"].includes(file.type)) { showToast("图片格式不支持","请上传 PNG、JPEG、GIF、WebP、TIFF 或 AVIF 图片，将自动转为 WebP。","error"); return; } try { const data=await new Promise((resolve,reject)=>{ const reader=new FileReader(); reader.onload=()=>resolve(reader.result); reader.onerror=()=>reject(new Error("文件无法读取。")); reader.readAsDataURL(file); }); const result=await runButtonAction(button,"上传中...","封面上传成功",()=>api(`/api/posts/${encodeURIComponent(slug)}/assets`,{method:"POST",body:JSON.stringify({name:file.name,data,kind:"image",cover:true,alt:"cover"})})); postForm.elements.image.value=result.path; refreshArticleCover(); showToast("封面路径已添加","保存文章即可发布封面引用。"); } catch(error) { showToast("封面上传失败",error.message||"封面未上传。","error"); } }
     async function uploadPostMedia(file, kind, button) { const slug=articleStorageKey(); if(!slug) { showToast("上传需要标题","请先填写文章标题。","error"); return; } if(kind==="image"&&!["image/webp","image/png","image/jpeg","image/gif","image/tiff","image/avif"].includes(file.type)) { showToast("图片格式不支持","请上传 PNG、JPEG、GIF、WebP、TIFF 或 AVIF 图片，将自动转为 WebP。","error"); return; } if(kind==="video"&&!["video/mp4","video/webm"].includes(file.type)) { showToast("视频格式不支持","视频必须为 MP4 或 WebM 文件。","error"); return; } try { const data=await new Promise((resolve,reject)=>{ const reader=new FileReader(); reader.onload=()=>resolve(reader.result); reader.onerror=()=>reject(new Error("文件无法读取。")); reader.readAsDataURL(file); }); const result=await runButtonAction(button,"上传中...",kind==="image"?"图片已上传":"视频已上传",()=>api(`/api/posts/${encodeURIComponent(slug)}/assets`,{method:"POST",body:JSON.stringify({name:file.name,data,kind,alt:file.name.replace(/\.[^.]+$/,"")})})); insertMarkdownAtCursor(result.markdown); showToast("媒体已插入","媒体路径已添加到 Markdown，保存文章即可发布。"); } catch(error) { showToast("上传失败",error.message||"媒体未上传。","error"); } }
     function newPost() { showToast("新建文章","填写标题和内容后保存即可。"); currentSlug=null; postForm.reset(); refreshArticleCover(); mountPostTags([]); refreshPostCategoryOptions(); refreshMarkdownPreview(); postForm.elements.published.value=new Date().toISOString().slice(0,10); $("#delete-post").classList.add("hidden"); show("editor"); }
@@ -1531,6 +1532,113 @@
         ensureIconify();
       })();
       </script>
+      <!-- ===================== 全局滚动条 + 下拉选择框美化 ===================== -->
+      <style>
+        /* ---------- 滚动条：全局细条 + 青绿主题（侧边栏/列表/预览等所有滚动区复用） ---------- */
+        *::-webkit-scrollbar { width:9px; height:9px; }
+        *::-webkit-scrollbar-track { background:transparent; }
+        *::-webkit-scrollbar-thumb {
+          background:color-mix(in srgb,var(--accent) 26%,#cdd8d2);
+          border-radius:9px; border:2px solid transparent; background-clip:content-box;
+        }
+        *::-webkit-scrollbar-thumb:hover {
+          background:color-mix(in srgb,var(--accent) 55%,#fff);
+          background-clip:content-box;
+        }
+        *::-webkit-scrollbar-thumb:active {
+          background:var(--accent); background-clip:content-box;
+        }
+        *::-webkit-scrollbar-corner { background:transparent; }
+        * { scrollbar-width:thin; scrollbar-color:color-mix(in srgb,var(--accent) 35%,#cdd8d2) transparent; }
+        @media (prefers-color-scheme: dark) {
+          *::-webkit-scrollbar-thumb { background:color-mix(in srgb,var(--accent) 30%,#33504a); background-clip:content-box; }
+          *::-webkit-scrollbar-thumb:hover { background:color-mix(in srgb,var(--accent) 60%,#4a7a6d); background-clip:content-box; }
+          * { scrollbar-color:color-mix(in srgb,var(--accent) 30%,#33504a) transparent; }
+        }
+
+        /* ---------- 下拉选择框：绿色箭头 + 精致状态（筛选/分类/状态/类型/艺术家等复用） ---------- */
+        select {
+          appearance:none; -webkit-appearance:none;
+          min-height:38px; padding:7px 36px 7px 12px;
+          background-color:#fff;
+          background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23059669' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+          background-position:right 12px center; background-size:15px; background-repeat:no-repeat;
+          border:1px solid var(--line); border-radius:10px;
+          color:var(--ink); font-weight:600; cursor:pointer;
+          transition:border-color .14s ease,box-shadow .14s ease,background-color .14s ease;
+        }
+        select:hover { border-color:color-mix(in srgb,var(--accent) 55%,var(--line)); background-color:#f7fcfa; }
+        select:focus {
+          border-color:var(--accent);
+          box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 18%,transparent);
+          outline:0;
+        }
+        select:disabled { cursor:not-allowed; color:var(--muted); background-color:#f2f6f4; }
+        select option { background:#fff; color:var(--ink); font-weight:500; }
+        select option:checked { background:color-mix(in srgb,var(--accent) 14%,#fff); color:var(--accent); font-weight:700; }
+        @media (prefers-color-scheme: dark) {
+          select {
+            background-color:#16281f; border-color:#2c4236; color:var(--ink);
+            background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2334d399' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+          }
+          select:hover { border-color:#3f8065; background-color:#1a2e24; }
+          select:focus { border-color:var(--accent); box-shadow:0 0 0 3px rgba(52,211,153,.2); }
+          select:disabled { background-color:#141f19; }
+          select option { background:#16281f; color:var(--ink); }
+          select option:checked { background:rgba(52,211,153,.16); color:#6fe8b4; }
+        }
+
+        /* ---------- 自定义下拉（Chrome 无法样式化原生 option，用浮层替代，value/change 逻辑不变） ---------- */
+        .sel-wrap { position:relative; display:inline-block; width:100%; vertical-align:middle; }
+        .sel-wrap select { display:none; }
+        .sel-btn {
+          display:flex; align-items:center; justify-content:space-between; gap:8px;
+          width:100%; min-height:38px; padding:7px 12px;
+          background:#fff; border:1px solid var(--line); border-radius:10px;
+          color:var(--ink); font-weight:600; cursor:pointer; text-align:left;
+          transition:transform .14s ease, box-shadow .14s ease, border-color .14s ease, background-color .14s ease;
+        }
+        .sel-wrap:hover .sel-btn, .sel-btn:hover { border-color:color-mix(in srgb,var(--accent) 55%,var(--line)); background-color:#f7fcfa; transform:translateY(-1px); }
+        .sel-btn:active:not(.open) { transform:translateY(1px) scale(.98); }
+        .sel-btn:focus-visible, .sel-btn.open { border-color:var(--accent); box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 18%,transparent); outline:0; }
+        .sel-btn.open { transform:none; }
+        .sel-menu {
+          animation:sel-menu-in .16s ease-out;
+        }
+        @keyframes sel-menu-in {
+          from { opacity:0; transform:translateY(-4px); }
+          to { opacity:1; transform:translateY(0); }
+        }
+        .sel-btn-label { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+        .sel-arrow {
+          flex-shrink:0; width:15px; height:15px;
+          background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23059669' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") center/contain no-repeat;
+          transition:transform .16s ease;
+        }
+        .sel-btn.open .sel-arrow { transform:rotate(180deg); }
+        .sel-menu {
+          position:absolute; left:0; right:0; top:calc(100% + 4px); z-index:1200;
+          background:#fff; border:1px solid var(--line); border-radius:10px;
+          box-shadow:0 10px 30px rgba(20,60,40,.14);
+          max-height:240px; overflow:auto; padding:5px;
+        }
+        .sel-opt {
+          padding:8px 11px; border-radius:7px; font-size:13px; color:var(--ink);
+          cursor:pointer; transition:background .12s,color .12s; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+        }
+        .sel-opt:hover { background:color-mix(in srgb,var(--accent) 10%,transparent); color:var(--accent); }
+        .sel-opt.selected { background:color-mix(in srgb,var(--accent) 14%,#fff); color:var(--accent); font-weight:700; }
+        @media (prefers-color-scheme: dark) {
+          .sel-btn { background:#16281f; border-color:#2c4236; color:var(--ink); }
+          .sel-wrap:hover .sel-btn, .sel-btn:hover { border-color:#3f8065; background-color:#1a2e24; }
+          .sel-btn:focus-visible, .sel-btn.open { border-color:var(--accent); box-shadow:0 0 0 3px rgba(52,211,153,.2); }
+          .sel-arrow { background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2334d399' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E"); }
+          .sel-menu { background:#14241c; border-color:#24382e; box-shadow:0 10px 30px rgba(0,0,0,.4); }
+          .sel-opt { color:var(--ink); }
+          .sel-opt:hover { background:rgba(52,211,153,.12); color:#6fe8b4; }
+          .sel-opt.selected { background:rgba(52,211,153,.16); color:#6fe8b4; }
+        }
+      </style>
       <!-- ===================== 待验证文章：动态过期管理 ===================== -->
       <style>
         .verify-panel { max-width:1100px; }
@@ -1682,7 +1790,148 @@
         }
         document.getElementById("reverify-selected").addEventListener("click", function() { runReverify(selectedSlugs()); });
         var allBtn = document.getElementById("reverify-all");
-        if (allBtn) allBtn.addEventListener("click", function() { runReverify(staleItems.map(function(i) { return i.slug; })); });
+            if (allBtn) allBtn.addEventListener("click", function() { runReverify(staleItems.map(function(i) { return i.slug; })); });
+      })();
+      </script>
+      <!-- ===================== 全站霞鹜文楷（方案 B，字号 15px 档） ===================== -->
+      <style>
+        @font-face {
+          font-family:"LXGW WenKai";
+          src:url("/fonts/lxgw-wenkai-medium.woff2") format("woff2");
+          font-display:swap;
+        }
+        body {
+          font-family:"LXGW WenKai","PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+          font-size:17px; line-height:1.6;
+        }
+        /* 标题：20px */
+        .brand-copy h1, #page-title, .data-commandbar h2, .data-nav-header h2,
+        .convert-header h2, .data-list-heading h3, .data-form-heading h3,
+        #settings-form > .panel h2, .verify-header h2 {
+          font-family:"LXGW WenKai","PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+          font-size:20px; letter-spacing:.02em;
+        }
+        /* 导航/按钮/分页/图标：霞鹜文楷，17px */
+        nav button, .nav-group-toggle, .collection-tabs button, .primary, .secondary, .danger,
+        .icon-button, .pagination button, .filter-toggle, .mode-switch button,
+        .convert-drop-zone p, .brand-mark, .nav-symbol, .collection-icon, .tag-chip,
+        .remote-repo-main strong, .data-group-title, .side-group-title {
+          font-family:"LXGW WenKai","PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+          font-size:17px;
+        }
+        /* 侧边栏 17px、元信息 14.5px */
+        .brand-copy p, .nav-label, .post-meta, .data-card .post-meta, .muted {
+          font-size:14.5px;
+        }
+        /* 输入控件 17px */
+        input, textarea, select, .sel-btn-label {
+          font-size:17px;
+        }
+        /* 列表卡片名称：文章标题 / 数据中心项目·技能·时间线·音乐·日记名称 —— 单独调大 */
+        .post-row > button strong, .data-detail .data-card strong {
+          font-family:"LXGW WenKai","PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+          font-size:19px; font-weight:500; line-height:1.45;
+        }
+        /* 暗色模式字号不变，仅字体已覆盖 */
+      </style>
+      <!-- ===================== 自定义下拉增强（替代浏览器原生 option，主题化；value/change 不变） ===================== -->
+      <script>
+      (function() {
+        var enhanced = new WeakMap();
+        /* 包装单个 select */
+        function enhanceSelect(sel) {
+          if (!sel || sel.dataset.selEnhanced === "1" || sel.closest(".sel-wrap")) return;
+          sel.dataset.selEnhanced = "1";
+          var wrap = document.createElement("span");
+          wrap.className = "sel-wrap";
+          var btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = "sel-btn";
+          var label = document.createElement("span");
+          label.className = "sel-btn-label";
+          var arrow = document.createElement("span");
+          arrow.className = "sel-arrow";
+          btn.append(label, arrow);
+          sel.before(wrap);
+          wrap.append(sel, btn);
+          var menu = null;
+          var syncLabel = function() {
+            var opt = sel.selectedOptions && sel.selectedOptions[0];
+            label.textContent = opt ? opt.textContent : (sel.options[0] ? sel.options[0].textContent : "");
+          };
+          syncLabel();
+          var closeMenu = function() {
+            if (menu) { menu.remove(); menu = null; btn.classList.remove("open"); }
+            document.removeEventListener("mousedown", onDocDown, true);
+          };
+          var onDocDown = function(e) {
+            if (!wrap.contains(e.target)) closeMenu();
+          };
+          var openMenu = function() {
+            closeMenu();
+            menu = document.createElement("div");
+            menu.className = "sel-menu";
+            Array.from(sel.options).forEach(function(opt) {
+              var item = document.createElement("div");
+              item.className = "sel-opt" + (opt.selected ? " selected" : "");
+              item.textContent = opt.textContent;
+              item.dataset.value = opt.value;
+              item.addEventListener("click", function(e) {
+                e.stopPropagation();
+                sel.value = item.dataset.value;
+                syncLabel();
+                sel.dispatchEvent(new Event("change", { bubbles: true }));
+                closeMenu();
+              });
+              menu.appendChild(item);
+            });
+            wrap.appendChild(menu);
+            btn.classList.add("open");
+            document.addEventListener("mousedown", onDocDown, true);
+          };
+          btn.addEventListener("click", function(e) {
+            e.stopPropagation();
+            if (menu) closeMenu(); else openMenu();
+          });
+          /* 外部程序化修改 value 时同步按钮（fill 回填等） */
+          sel.addEventListener("change", syncLabel);
+        }
+        /* 扫描并增强容器内所有原生 select */
+        function scan(root) {
+          (root || document).querySelectorAll("select").forEach(enhanceSelect);
+        }
+        /* 初始扫描 */
+        if (document.readyState === "loading") {
+          document.addEventListener("DOMContentLoaded", function() { scan(document); });
+        } else {
+          scan(document);
+        }
+        /* 数据字段每次重渲染后重新扫描（分类法会把 input 换成 select） */
+        var baseRenderFields = window.renderDataFields;
+        if (typeof baseRenderFields === "function") {
+          window.renderDataFields = function(item) {
+            var result = baseRenderFields.apply(this, arguments);
+            scan(document.getElementById("data-fields"));
+            return result;
+          };
+        }
+        /* 节流轮询：程序化 fill 不触发 change，定时比对 value 同步按钮文字 */
+        var cache = new Map();
+        setInterval(function() {
+          document.querySelectorAll(".sel-wrap select").forEach(function(sel) {
+            var btn = sel.nextElementSibling;
+            var last = cache.get(sel);
+            var cur = sel.value;
+            if (last !== cur) {
+              cache.set(sel, cur);
+              if (btn) {
+                var opt = sel.selectedOptions && sel.selectedOptions[0];
+                var lbl = btn.querySelector(".sel-btn-label");
+                if (lbl) lbl.textContent = opt ? opt.textContent : "";
+              }
+            }
+          });
+        }, 400);
       })();
       </script>
 </body>

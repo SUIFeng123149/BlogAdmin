@@ -85,5 +85,14 @@ export async function servePublicFile(response, urlPathname) {
 						: extension === ".ttf"
 							? "font/ttf"
 							: "text/plain; charset=utf-8";
+	/* 字体文件是二进制，必须以 buffer 读取，否则 utf8 转码会损坏 */
+	if (extension === ".woff2" || extension === ".ttf") {
+		const content = await readFile(file);
+		response.writeHead(200, {
+			"Content-Type": contentType,
+			"Cache-Control": "public, max-age=86400",
+		});
+		return response.end(content);
+	}
 	return text(response, 200, await readFile(file, "utf8"), contentType);
 }

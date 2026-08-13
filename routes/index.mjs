@@ -76,6 +76,10 @@ export async function handleApi(request, response, pathname) {
 		const body = await readBody(request);
 		return json(response, 200, await convertAudio(body));
 	}
+	if (pathname === "/api/pdf-to-markdown" && request.method === "POST") {
+		const { pdfToMarkdown } = await import("../services/pdf-convert.mjs");
+		return json(response, 200, await pdfToMarkdown(await readBody(request)));
+	}
 	if (pathname === "/api/albums" && request.method === "GET")
 		return json(response, 200, { items: await listAlbums() });
 	if (pathname === "/api/albums" && request.method === "POST") {
