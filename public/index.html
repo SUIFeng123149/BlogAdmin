@@ -30,13 +30,55 @@
 </head>
 <body>
   <section id="login"><form class="login-card stack" id="login-form"><div class="brand"><span class="brand-mark">M</span><div><h1>Mizuki 管理后台</h1><p class="muted">私有内容工作区</p></div></div><label>密码<input id="password" type="password" autocomplete="current-password" required autofocus></label><button class="primary">登录</button><p id="login-error" class="status" role="alert"></p></form></section>
-  <div id="app" class="hidden"><aside><div class="sidebar-top"><div class="brand"><span class="brand-mark">M</span><div class="brand-copy"><h1>云栖小筑 管理</h1><p class="muted">静态博客工作区</p></div></div><button class="icon-button" id="sidebar-toggle" type="button" title="收起侧边栏" aria-label="收起侧边栏">&#8249;</button></div><nav><button data-view="posts" class="active"><span class="nav-symbol">文</span><span class="nav-label">文章</span></button><button data-view="data"><span class="nav-symbol">数</span><span class="nav-label">数据中心</span></button><button data-view="settings"><span class="nav-symbol">设</span><span class="nav-label">站点设置</span></button><div class="nav-group expanded"><button class="nav-group-toggle" type="button"><span class="nav-symbol">具</span><span class="nav-label">处理工具</span><span class="nav-chevron">▼</span></button><div class="nav-sub-items"><button data-view="convert"><span class="nav-symbol">转</span><span class="nav-label">转 WebP</span></button><button data-view="audioconvert"><span class="nav-symbol">音</span><span class="nav-label">转 MP3</span></button></div></div></nav><div></div><button class="secondary" id="logout">退出登录</button></aside>
+  <div id="app" class="hidden"><aside><div class="sidebar-top"><div class="brand"><span class="brand-mark">M</span><div class="brand-copy"><h1>云栖小筑 管理</h1><p class="muted">静态博客工作区</p></div></div><button class="icon-button" id="sidebar-toggle" type="button" title="收起侧边栏" aria-label="收起侧边栏">&#8249;</button></div><nav><button data-view="posts" class="active"><span class="nav-symbol">文</span><span class="nav-label">文章</span></button><button data-view="data"><span class="nav-symbol">数</span><span class="nav-label">数据中心</span></button><button data-view="settings"><span class="nav-symbol">设</span><span class="nav-label">站点设置</span></button><button data-view="sections"><span class="nav-symbol">区</span><span class="nav-label">分区管理</span></button><div class="nav-group expanded"><button class="nav-group-toggle" type="button"><span class="nav-symbol">具</span><span class="nav-label">处理工具</span><span class="nav-chevron">▼</span></button><div class="nav-sub-items"><button data-view="convert"><span class="nav-symbol">转</span><span class="nav-label">转 WebP</span></button><button data-view="audioconvert"><span class="nav-symbol">音</span><span class="nav-label">转 MP3</span></button></div></div></nav><div></div><button class="secondary" id="logout">退出登录</button></aside>
   <main><div class="topbar"><div><h1 id="page-title">文章</h1><p class="muted">修改内容自动保存到仓库源文件。</p></div><p id="status" class="status" role="status"></p></div>
     <section id="posts" class="view active"><div class="filter-bar"><button class="primary" id="new-post">新建文章</button><input id="search" placeholder="搜索文章" aria-label="搜索文章"><button class="filter-toggle" id="filter-toggle" type="button">▼ 筛选</button></div><div id="filter-panel" class="filter-panel"><select id="post-category-filter" aria-label="按分类筛选"><option value="">全部分类</option></select><select id="post-tag-filter" aria-label="按标签筛选"><option value="">全部标签</option></select><select id="post-date-filter" aria-label="按日期筛选"><option value="">全部日期</option></select><select id="post-featured-filter" aria-label="按精选状态筛选"><option value="">全部文章</option><option value="true">仅首页精选</option><option value="false">非精选文章</option></select></div><div id="post-list" class="post-list" style="margin-top:16px"></div><div id="pagination" class="pagination hidden"></div></section>
     <section id="editor" class="view"><form id="post-form" class="editor-grid"><div class="panel stack"><label>标题<input name="title" required></label><div id="markdown-drop-zone" class="markdown-drop-zone markdown-mode-split"><div class="markdown-toolbar"><strong>Markdown</strong><div class="mode-switch" role="group" aria-label="Markdown 编辑模式"><button type="button" data-markdown-mode="edit">编辑</button><button type="button" data-markdown-mode="preview">预览</button><button type="button" data-markdown-mode="split" class="active">分屏</button></div></div><div class="markdown-workspace"><label class="markdown-editor-label"><span class="sr-only">Markdown 源码</span><textarea name="body" rows="24"></textarea></label><article id="markdown-preview" class="markdown-preview" aria-label="Markdown 预览"></article></div><div class="markdown-import"><span>拖入 Markdown、PDF（自动转 Markdown）、图片（自动转 WebP）或 MP4/WebM 视频</span><div class="media-actions"><button class="secondary" type="button" id="import-markdown">导入 .md</button><button class="secondary" type="button" id="import-pdf">导入 PDF</button><button class="secondary" type="button" id="upload-image">上传图片</button><button class="secondary" type="button" id="upload-video">上传视频</button></div><input id="markdown-file-input" type="file" accept=".md,text/markdown" class="hidden"><input id="pdf-file-input" type="file" accept=".pdf,application/pdf" class="hidden"><input id="image-file-input" type="file" accept="image/png,image/jpeg,image/gif,image/webp,image/tiff,image/avif,.png,.jpg,.jpeg,.gif,.webp,.tiff,.tif,.avif" class="hidden"><input id="video-file-input" type="file" accept="video/mp4,video/webm,.mp4,.webm" class="hidden"></div></div></div><div class="panel stack"><label>文件名<input name="slug" required pattern="[^\\/:*?&quot;&lt;&gt;|]+"></label><div class="fields"><label>发布日期<input name="published" type="date"></label><label>分类<input name="category" list="category-options" placeholder="选择或输入分类"></label><label>标签<input name="tags" class="hidden"><div id="post-tag-picker" class="tag-picker"></div></label></div><label class="description-field">描述<textarea name="description" rows="8" maxlength="600" placeholder="写一段 10-200 字的清晰摘要"></textarea><span class="field-hint">推荐 10-200 字</span></label><label class="cover-field">封面图片<input name="image" readonly placeholder="上传封面（自动转 WebP）"></label><div id="cover-upload-zone" class="cover-upload-zone"><span>在此拖放封面（自动转 WebP）</span><button class="secondary" type="button" id="upload-cover">上传封面</button><input id="cover-file-input" type="file" accept="image/png,image/jpeg,image/gif,image/webp,image/tiff,image/avif,.png,.jpg,.jpeg,.gif,.webp,.tiff,.tif,.avif" class="hidden"></div><a id="cover-thumbnail" class="image-thumbnail hidden" href="#" aria-label="查看完整封面"><img id="cover-preview" alt="文章封面预览"></a><label>系列<input name="series"></label><div class="fields"><label>系列序号<input name="seriesOrder" type="number" min="1"></label><label>状态<select name="status"><option value="">未设置</option><option value="verified">已验证</option><option value="maintenance">维护中</option><option value="outdated">可能已过时</option></select></label></div><label>测试环境<input name="testedOn"></label><label>最后验证<input name="lastVerified" type="date"></label><label class="check"><input name="draft" type="checkbox"> 仅草稿</label><div class="actions"><button class="danger hidden" type="button" id="delete-post">删除</button><button class="secondary" type="button" id="cancel-edit">取消</button><button class="primary">保存文章</button></div></div></form></section>
     <section id="data" class="view"><div class="data-layout"><aside class="panel data-navigation"><div class="data-nav-header"><div><span class="data-eyebrow">内容</span><h2>站点数据</h2></div><span class="data-total">5</span></div><div class="collection-tabs" id="collection-tabs"><button data-collection="projects" class="active"><span class="collection-icon">项</span><span>项目</span></button><button data-collection="skills"><span class="collection-icon">技</span><span>技能</span></button><button data-collection="timeline"><span class="collection-icon">时</span><span>时间线</span></button><button data-collection="now"><span class="collection-icon">此</span><span>此刻</span></button><button data-collection="music"><span class="collection-icon">音</span><span>音乐</span></button></div><p class="data-nav-note">每个集合存储在其对应的源数据文件中。</p></aside><div class="data-detail"><div class="data-commandbar"><div><span class="data-eyebrow">管理</span><h2 id="data-workspace-title">项目</h2></div><div class="toolbar"><button class="primary" id="new-data-item">新建</button><button class="secondary hidden" id="sync-projects" type="button">从仓库拉取</button><button class="secondary" id="save-data" disabled>保存集合</button></div></div><div class="data-workspace"><section class="panel data-list-panel"><div class="data-list-heading"><div><h3>列表</h3><p id="data-item-count" class="muted">0 项</p></div></div><div id="data-list" class="data-list"></div></section><form id="data-form" class="panel data-form-panel stack"><div class="data-form-heading"><div><h3>详情</h3><p class="muted">选择一个项目以编辑其字段。</p></div></div><div id="data-fields" class="data-fields"></div><div class="actions"><button class="danger hidden" id="delete-data-item" type="button">删除</button></div></form></div></div></div></section>    <section id="settings" class="view"><form id="settings-form" class="settings"><div class="panel stack"><h2>核心设置</h2><div class="fields"><label>站点标题<input name="title" required></label><label>主题色相<input name="themeHue" type="number" min="0" max="360"></label></div><label>副标题<input name="subtitle"></label></div><div class="panel stack"><h2>功能开关</h2><label class="check"><input name="bannerEnabled" type="checkbox"> 启用横幅</label><label class="check"><input name="commentsEnabled" type="checkbox"> 启用评论</label><label class="check"><input name="musicEnabled" type="checkbox"> 启用音乐播放器</label><label class="check"><input name="ogImagesEnabled" type="checkbox"> 生成分享图</label><div class="actions"><button class="primary">保存设置</button></div></div></form></section>
     <section id="convert" class="view"><div class="panel stack convert-panel"><div class="convert-header"><h2>图片转 WebP</h2><p class="muted">支持 PNG、JPEG、GIF、TIFF、AVIF 格式，自动转换为高效 WebP 格式。</p></div><div class="convert-layout"><div class="convert-upload"><div id="convert-drop-zone" class="convert-drop-zone"><div class="convert-drop-icon">+</div><p>拖放图片到此处</p><p class="muted">或点击下方按钮选择</p><button class="secondary" type="button" id="convert-select-btn">选择图片</button><input id="convert-file-input" type="file" accept="image/png,image/jpeg,image/gif,image/tiff,image/avif,.png,.jpg,.jpeg,.gif,.tiff,.tif,.avif" multiple class="hidden"></div><div id="convert-queue" class="convert-queue hidden"></div></div><div class="convert-controls"><label>质量 <span id="convert-quality-label">80</span><input id="convert-quality" type="range" min="1" max="100" value="80" step="1"></label><div class="convert-actions"><button class="primary" id="convert-start" disabled>开始转换</button><button class="secondary" id="convert-clear" disabled>清空列表</button></div><div id="convert-results" class="convert-results hidden"></div></div></div></div></section>
     <section id="audioconvert" class="view"><div class="panel stack convert-panel"><div class="convert-header"><h2>音频转 MP3</h2><p class="muted">支持 FLAC、WAV、AAC、OGG、M4A、WMA、NCM（网易云音乐）等格式，转换为 MP3。</p></div><div class="convert-layout"><div class="convert-upload"><div id="audio-drop-zone" class="convert-drop-zone"><div class="convert-drop-icon">♪</div><p>拖放音频文件到此处</p><p class="muted">或点击下方按钮选择</p><button class="secondary" type="button" id="audio-select-btn">选择音频文件</button><input id="audio-file-input" type="file" accept=".ncm,.flac,.wav,.aac,.ogg,.m4a,.wma,.opus,.mp3" multiple class="hidden"></div><div id="audio-queue" class="convert-queue hidden"></div></div><div class="convert-controls"><label>比特率 <span id="audio-bitrate-label">192</span> kbps<input id="audio-bitrate" type="range" min="64" max="320" value="192" step="32"></label><div class="convert-actions"><button class="primary" id="audio-start" disabled>开始转换</button><button class="secondary" id="audio-clear" disabled>清空列表</button></div><div id="audio-results" class="convert-results hidden"></div></div></div></div></section>
+  <section id="sections" class="view">
+    <style>
+      .sections-layout { display:grid; grid-template-columns:230px minmax(0,1fr); gap:18px; align-items:start; max-width:1100px; }
+      .sections-nav { position:sticky; top:20px; padding:14px; }
+      .sections-nav-header { padding:4px 5px 14px; border-bottom:1px solid var(--line); }
+      .sections-nav-header h2 { font-size:16px; }
+      .sections-tabs { display:grid; gap:4px; margin-top:12px; }
+      .sections-tabs button { display:flex; align-items:center; gap:9px; min-height:42px; border:1px solid transparent; background:transparent; color:var(--ink); border-radius:5px; font-weight:650; text-align:left; padding:9px 10px; }
+      .sections-tabs button.active { border-color:#b8d9f7; background:#eaf5ff; color:#1266ae; box-shadow:inset 3px 0 #1976d2; }
+      .sections-tab-icon { width:22px; height:22px; display:grid; place-items:center; flex:0 0 auto; font-size:13px; background:#f0f7fd; border-radius:5px; }
+      .sections-tabs button.active .sections-tab-icon { background:#1976d2; }
+      .sections-tab-count { margin-left:auto; color:var(--muted); font-size:12px; }
+      .sections-note { margin:14px 5px 3px; font-size:12px; line-height:1.55; }
+      .sections-detail { display:grid; gap:14px; }
+      .sections-commandbar { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:2px 2px 0; }
+      .sections-commandbar h2 { font-size:21px; }
+      .sections-cat-list { padding:14px; display:grid; gap:7px; }
+      .section-cat-row { display:flex; align-items:center; gap:8px; border:1px solid var(--line); border-radius:6px; padding:7px 9px; background:#fff; }
+      .section-cat-row:hover { border-color:#cce4f9; }
+      .section-cat-grip { color:var(--muted); cursor:grab; user-select:none; }
+      .section-cat-name { flex:1; min-width:0; border:1px solid var(--line); border-radius:5px; padding:7px 10px; }
+      .section-cat-row .icon-button { width:28px; height:28px; font-size:15px; }
+      @media (max-width:820px) { .sections-layout { grid-template-columns:1fr; } .sections-nav { position:static; } }
+    </style>
+    <div class="sections-layout">
+      <aside class="panel sections-nav">
+        <div class="sections-nav-header"><div><span class="data-eyebrow">分区</span><h2>浏览内容分区</h2></div></div>
+        <div class="sections-tabs" id="sections-tabs"></div>
+        <p class="muted sections-note">管理每个顶级分区下的二级分类卡片，保存后自动触发站点重新部署。</p>
+      </aside>
+      <div class="sections-detail">
+        <div class="sections-commandbar">
+          <div><span class="data-eyebrow">分类</span><h2 id="sections-title">技术资料</h2></div>
+          <div class="toolbar">
+            <button class="primary" id="section-add-category" type="button">新增分类</button>
+            <button class="secondary" id="section-save" type="button" disabled>保存分区</button>
+          </div>
+        </div>
+        <div class="panel sections-cat-list" id="sections-cat-list"></div>
+      </div>
+    </div>
+  </section>
   </main></div>
   <datalist id="tag-options"></datalist><datalist id="category-options"></datalist><datalist id="artist-options"></datalist>
   <div id="image-lightbox" class="image-lightbox hidden" role="dialog" aria-modal="true" aria-label="图片全屏预览"><button id="close-lightbox" class="icon-button" type="button" aria-label="关闭图片预览">×</button><img id="lightbox-image" alt="图片全屏预览"></div>
@@ -88,6 +130,138 @@
     </div>
   </div>
 <script src="/assets/js/marked.min.js"></script>
+<script>
+(function () {
+  const SECTION_ICONS = { technical: "💻", notes: "✍️", games: "🎮", other: "📁" };
+  let sectionsData = [];
+  let activeSection = 0;
+  let dirty = false;
+
+  const tabsEl = $("#sections-tabs");
+  const listEl = $("#sections-cat-list");
+  const saveBtn = $("#section-save");
+  const titleEl = $("#sections-title");
+  const addBtn = $("#section-add-category");
+
+  function setDirty(v) { dirty = v; saveBtn.disabled = !v; }
+
+  async function loadSections() {
+    try {
+      const r = await api("/api/data/sections");
+      sectionsData = Array.isArray(r.items) ? r.items : [];
+      if (activeSection >= sectionsData.length) activeSection = 0;
+      renderTabs();
+      renderList();
+      setDirty(false);
+    } catch (err) {
+      showToast("加载分区失败", err.message, "error");
+    }
+  }
+
+  function renderTabs() {
+    tabsEl.innerHTML = sectionsData.map((sec, idx) =>
+      `<button data-idx="${idx}" class="${idx === activeSection ? "active" : ""}"><span class="sections-tab-icon">${SECTION_ICONS[sec.slug] || "📁"}</span><span>${escapeHtml(sec.title || sec.slug)}</span><span class="sections-tab-count">${(sec.categories || []).length}</span></button>`
+    ).join("");
+  }
+
+  function renderList() {
+    const sec = sectionsData[activeSection];
+    if (!sec) return;
+    titleEl.textContent = sec.title || sec.slug;
+    const cats = sec.categories || [];
+    listEl.innerHTML = cats.length === 0
+      ? `<div class="empty-state">该分区还没有分类，点击「新增分类」添加。新增分类即使暂无文章也会显示在站点卡片上。</div>`
+      : cats.map((cat, idx) =>
+          `<div class="section-cat-row" data-idx="${idx}">
+             <span class="section-cat-grip">⠿</span>
+             <input class="section-cat-name" value="${escapeHtml(cat)}" data-idx="${idx}" title="分类名称">
+             <button class="icon-button section-cat-up" data-idx="${idx}" type="button" title="上移" ${idx === 0 ? "disabled" : ""}>↑</button>
+             <button class="icon-button section-cat-down" data-idx="${idx}" type="button" title="下移" ${idx === cats.length - 1 ? "disabled" : ""}>↓</button>
+             <button class="icon-button section-cat-del" data-idx="${idx}" type="button" title="删除">×</button>
+           </div>`
+        ).join("");
+  }
+
+  tabsEl.onclick = (e) => {
+    const btn = e.target.closest("[data-idx]");
+    if (!btn) return;
+    if (dirty && !confirm("当前分区有未保存的修改，切换将丢失。确定继续？")) return;
+    activeSection = Number(btn.dataset.idx);
+    renderTabs();
+    renderList();
+  };
+
+  listEl.onclick = (e) => {
+    const row = e.target.closest(".section-cat-row");
+    if (!row) return;
+    const idx = Number(row.dataset.idx);
+    const cats = sectionsData[activeSection].categories || (sectionsData[activeSection].categories = []);
+    if (row.classList.contains("section-cat-up") && idx > 0) {
+      [cats[idx - 1], cats[idx]] = [cats[idx], cats[idx - 1]];
+      renderList(); setDirty(true);
+    } else if (row.classList.contains("section-cat-down") && idx < cats.length - 1) {
+      [cats[idx + 1], cats[idx]] = [cats[idx], cats[idx + 1]];
+      renderList(); setDirty(true);
+    } else if (row.classList.contains("section-cat-del")) {
+      const name = cats[idx];
+      if (confirm(`删除分类「${name}」？文章仍保留该分类字段，只是不再显示在分区卡片上。`)) {
+        cats.splice(idx, 1);
+        renderList(); setDirty(true);
+      }
+    }
+  };
+
+  listEl.oninput = (e) => {
+    if (!e.target.classList.contains("section-cat-name")) return;
+    const idx = Number(e.target.dataset.idx);
+    const val = e.target.value.trim();
+    if (!val) return;
+    sectionsData[activeSection].categories[idx] = val;
+    setDirty(true);
+  };
+
+  addBtn.onclick = () => {
+    const sec = sectionsData[activeSection];
+    if (!sec) return;
+    if (!sec.categories) sec.categories = [];
+    sec.categories.push("新分类");
+    renderList();
+    const inputs = listEl.querySelectorAll(".section-cat-name");
+    const last = inputs[inputs.length - 1];
+    if (last) { last.focus(); last.select(); }
+    setDirty(true);
+  };
+
+  saveBtn.onclick = async () => {
+    // 清理空分类与重名
+    sectionsData.forEach((sec) => {
+      if (!Array.isArray(sec.categories)) sec.categories = [];
+      sec.categories = [...new Set(sec.categories.map((c) => String(c).trim()).filter(Boolean))];
+    });
+    saveBtn.disabled = true;
+    const label = saveBtn.textContent;
+    saveBtn.textContent = "保存中...";
+    try {
+      await api("/api/data/sections", { method: "PUT", body: JSON.stringify({ items: sectionsData }) });
+      showToast("分区已保存", "已触发站点重新部署。", "success");
+      setDirty(false);
+      renderList();
+    } catch (err) {
+      showToast("保存失败", err.message, "error");
+      setDirty(true);
+    } finally {
+      saveBtn.textContent = label;
+    }
+  };
+
+  document.querySelector('nav button[data-view="sections"]')?.addEventListener("click", () => {
+    loadSections();
+  });
+
+  loadSections();
+})();
+</script>
+
   <script>
     const $ = (s) => document.querySelector(s); let currentSlug = null; let posts = []; let currentPage = 1;
     async function api(path, options={}) { const response = await fetch(path, { credentials:"same-origin", headers:{"Content-Type":"application/json", ...(options.headers||{})}, ...options }); if (!response.ok) { const data = await response.json().catch(()=>({})); throw new Error(data.error || "请求失败。"); } return response.status === 204 ? null : response.json(); }
@@ -99,12 +273,12 @@
     async function runButtonAction(button, pendingLabel, successLabel, action, completeLabel="已保存") { const original=button.textContent; button.disabled=true; button.classList.add("is-pending"); button.textContent=pendingLabel; try { const result=await action(); button.classList.remove("is-pending"); button.classList.add("is-success"); button.textContent=completeLabel; showToast(successLabel,"修改已写入源文件。"); return result; } finally { setTimeout(()=>{button.disabled=false; button.classList.remove("is-success"); button.textContent=original;},900); } }
     let tagOptions=[]; let techStackOptions=[]; let categoryOptions={projects:[],all:[]};
     const collectionKeys=new Set(["tags","techStack","projects","skills","genre","achievements","certifications"]); const textListKeys=new Set(["focus","learning","building"]);
-    async function refreshTagOptions() { [tagOptions,techStackOptions,categoryOptions]=await Promise.all([api("/api/tags"),api("/api/options/tech-stack"),api("/api/options/categories")]); $("#tag-options").innerHTML=[...new Set([...tagOptions,...techStackOptions])].map(tag=>`<option value="${escapeHtml(tag)}"></option>`).join(""); const categories=[...categoryOptions.projects,...categoryOptions.all.filter(item=>!categoryOptions.projects.includes(item))]; $("#category-options").innerHTML=categories.map(category=>`<option value="${escapeHtml(category)}"></option>`).join(""); }
+    async function refreshTagOptions() { [tagOptions,techStackOptions,categoryOptions]=await Promise.all([api("/api/tags"),api("/api/options/tech-stack"),api("/api/options/categories")]); $("#tag-options").innerHTML=[...new Set([...tagOptions,...techStackOptions])].map(tag=>`<option value="${escapeHtml(tag)}"></option>`).join(""); const categories=[...categoryOptions.projects,...categoryOptions.all.filter(item=>!categoryOptions.projects.includes(item))]; $("#category-options").innerHTML=categories.map(category=>`<option value="${escapeHtml(category)}"></option>`).join(""); await syncSectionCategoriesFromConfig(); }
     async function refreshArtistOptions() { const artists=await api("/api/options/artists"); $("#artist-options").innerHTML=artists.map(artist=>`<option value="${escapeHtml(artist)}"></option>`).join(""); }
     function renderPicker(container, values, name, onChange) { const normalized=[...new Set((values||[]).map(value=>String(value).trim()).filter(Boolean))]; const persisted=container.querySelector("input[type=hidden][data-collection]"); container.innerHTML=""; if(persisted) container.append(persisted); container.dataset.values=JSON.stringify(normalized); normalized.forEach(value=>{ const chip=document.createElement("button"); chip.type="button"; chip.className="tag-chip"; chip.textContent=value; const close=document.createElement("span"); close.textContent="×"; chip.append(close); chip.onclick=()=>renderPicker(container,normalized.filter(item=>item!==value),name,onChange); container.append(chip); }); const input=document.createElement("input"); input.className="tag-entry"; input.placeholder=`添加${name}`; input.setAttribute("list","tag-options"); const add=()=>{ const value=input.value.trim(); if(!value) return; const isNew=!normalized.includes(value); renderPicker(container,[...normalized,value],name,onChange); input.value=""; if(isNew) showToast("已添加到集合",value); }; input.onkeydown=event=>{ if(event.key==="Enter"||event.key===",") { event.preventDefault(); add(); } }; input.onblur=add; container.append(input); const suggestions=document.createElement("div"); suggestions.className="tag-suggestions"; (name==="techStack"?techStackOptions:tagOptions).filter(tag=>!normalized.includes(tag)).slice(0,12).forEach(tag=>{ const button=document.createElement("button"); button.type="button"; button.textContent=`+ ${tag}`; button.onclick=()=>renderPicker(container,[...normalized,tag],name,onChange); suggestions.append(button); }); container.append(suggestions); if(onChange) onChange(normalized); }
     function mountPostTags(values=[]) { const source=$("#post-form").elements.tags; const picker=$("#post-tag-picker"); renderPicker(picker,values,"tag",next=>source.value=next.join(",")); }
     function clearPostSelection() { document.querySelectorAll(".post-row.is-selected").forEach(row=>row.classList.remove("is-selected")); }
-    function show(view) { if(view!=="data" && document.getElementById("data").classList.contains("active") && activeItem>=0) { try { formDrafts[activeCollection]={itemIndex:activeItem,data:collectDataForm()}; } catch(e){} } if(view!=="editor") clearPostSelection(); document.querySelectorAll(".view").forEach(n=>n.classList.toggle("active",n.id===view)); document.querySelectorAll("nav button").forEach(n=>n.classList.toggle("active",n.dataset.view===view)); $("#page-title").textContent=view==="posts"?"文章":view==="data"?"数据中心":view==="settings"?"站点设置":view==="convert"?"转 WebP":view==="audioconvert"?"转 MP3":"编辑文章"; if(view==="data" && formDrafts[activeCollection]) { const draft=formDrafts[activeCollection]; if(draft.itemIndex<collectionItems.length) { activeItem=draft.itemIndex; collectionItems[activeItem]={...collectionItems[activeItem],...draft.data}; delete formDrafts[activeCollection]; renderDataList(); } } }
+    function show(view) { if(view!=="data" && document.getElementById("data").classList.contains("active") && activeItem>=0) { try { formDrafts[activeCollection]={itemIndex:activeItem,data:collectDataForm()}; } catch(e){} } if(view!=="editor") clearPostSelection(); document.querySelectorAll(".view").forEach(n=>n.classList.toggle("active",n.id===view)); document.querySelectorAll("nav button").forEach(n=>n.classList.toggle("active",n.dataset.view===view)); $("#page-title").textContent=view==="posts"?"文章":view==="data"?"数据中心":view==="settings"?"站点设置":view==="convert"?"转 WebP":view==="sections"?"分区管理":view==="audioconvert"?"转 MP3":"编辑文章"; if(view==="data" && formDrafts[activeCollection]) { const draft=formDrafts[activeCollection]; if(draft.itemIndex<collectionItems.length) { activeItem=draft.itemIndex; collectionItems[activeItem]={...collectionItems[activeItem],...draft.data}; delete formDrafts[activeCollection]; renderDataList(); } } }
     function fill(form, data) { form.reset(); for (const [key,value] of Object.entries(data)) { const field=form.elements[key]; if (!field) continue; if (field.type === "checkbox") field.checked=Boolean(value); else field.value=Array.isArray(value)?value.join(", "):(value??""); } if(form.id==="post-form") { mountPostTags(Array.isArray(data.tags)?data.tags:String(data.tags||"").split(",").filter(Boolean)); refreshArticleCover(); } }
     function populatePostFilters() { const setOptions=(selector,values,label)=>{ const field=$(selector),selected=field.value; field.innerHTML=`<option value="">${label}</option>${[...new Set(values.filter(Boolean))].sort().map(value=>`<option value="${escapeHtml(value)}">${escapeHtml(value)}</option>`).join("")}`; field.value=[...field.options].some(option=>option.value===selected)?selected:""; }; setOptions("#post-category-filter",posts.map(post=>post.category),"全部分类"); setOptions("#post-tag-filter",posts.flatMap(post=>Array.isArray(post.tags)?post.tags:[]),"全部标签"); setOptions("#post-date-filter",posts.map(post=>post.published),"全部日期"); }
     function filteredPosts() { const q=$("#search").value.trim().toLowerCase(),category=$("#post-category-filter").value,tag=$("#post-tag-filter").value,published=$("#post-date-filter").value,featured=$("#post-featured-filter").value; return posts.filter(post=>(!q||`${post.title}${post.slug}${post.category}`.toLowerCase().includes(q))&&(!category||post.category===category)&&(!tag||(post.tags||[]).includes(tag))&&(!published||post.published===published)&&(!featured||String(Boolean(post.featured))===featured)); }
@@ -263,11 +437,8 @@
   <script>
     const postForm=document.querySelector("#post-form");
     const hiddenPostMetadata=["series", "seriesOrder", "testedOn"];
-    const postCategoriesBySection={
-      notes: ["日记", "随笔", "生活", "思考"],
-      games: ["游戏记录", "游戏攻略", "游戏评测"],
-      other: ["其他"]
-    };
+    let postCategoriesBySection={ notes: ["日记", "随笔", "生活", "思考"], games: ["游戏记录", "游戏攻略", "游戏评测"], other: ["其他"] };
+  async function syncSectionCategoriesFromConfig() { try { const r=await api("/api/data/sections"); const bySlug={}; (r.items||[]).forEach(sec=>{ bySlug[sec.slug]=[...(sec.categories||[])]; }); postCategoriesBySection=bySlug; } catch(e){} }
     const legacySlugField=postForm.elements.slug;
     if(legacySlugField) {
       const label=legacySlugField.closest("label");

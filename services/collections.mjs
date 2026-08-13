@@ -43,7 +43,14 @@ const dataCollections = {
 		symbol: "diaryEntries",
 		kind: "array",
 	},
+	sections: {
+		file: resolve(config.root, "src/data/sections.ts"),
+		symbol: "contentSections",
+		kind: "array",
+	},
 };
+
+export { dataCollections };
 
 function findLiteralRange(source, symbol, opening) {
 	const close = opening === "[" ? "]" : "}";
