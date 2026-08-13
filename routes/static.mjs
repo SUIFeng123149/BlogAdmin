@@ -2,6 +2,7 @@ import { config } from "../config.mjs";
 import { text } from "../utils.mjs";
 import { readFile } from "node:fs/promises";
 import { extname, join, resolve } from "node:path";
+import { getObject } from "../lib/oss.mjs";
 
 export async function serveMarkedJs(response) {
 	const content = await readFile(
@@ -13,6 +14,24 @@ export async function serveMarkedJs(response) {
 		200,
 		content,
 		"application/javascript; charset=utf-8",
+	);
+}
+
+function contentTypeFor(extension) {
+	return (
+		extension === ".webp"
+			? "image/webp"
+			: extension === ".jpg" || extension === ".jpeg"
+				? "image/jpeg"
+				: extension === ".png"
+					? "image/png"
+					: extension === ".gif"
+						? "image/gif"
+						: extension === ".mp3"
+							? "audio/mpeg"
+							: extension === ".svg"
+								? "image/svg+xml"
+								: "application/octet-stream"
 	);
 }
 
@@ -33,24 +52,31 @@ export async function serveStaticAsset(response, urlPathname) {
 	)
 		return text(response, 403, "Forbidden.");
 	const extension = extname(asset).toLowerCase();
-	const type =
-		extension === ".webp"
-			? "image/webp"
-			: extension === ".jpg" || extension === ".jpeg"
-				? "image/jpeg"
-				: extension === ".png"
-					? "image/png"
-					: extension === ".gif"
-						? "image/gif"
-						: extension === ".mp3"
-							? "audio/mpeg"
-							: "application/octet-stream";
-	const content = await readFile(asset);
-	response.writeHead(200, {
-		"Content-Type": type,
-		"Cache-Control": "no-store",
-	});
-	return response.end(content);
+	const type = contentTypeFor(extension);
+
+	// 优先本地；媒体已迁移 OSS，本地缺失时回退到 OSS 读取
+	try {
+		const content = await readFile(asset);
+		response.writeHead(200, {
+			"Content-Type": type,
+			"Cache-Control": "no-store",
+		});
+		return response.end(content);
+	} catch (error) {
+		if (error.code !== "ENOENT") throw error;
+	}
+	try {
+		const { content } = await getObject(urlPathname.replace(/^\//, ""));
+		response.writeHead(200, {
+			"Content-Type": type,
+			"Cache-Control": "no-store",
+		});
+		return response.end(content);
+	} catch (error) {
+		if (error.code === "NoSuchKey" || error.code === "NoSuchObject")
+			return text(response, 404, "Not found.");
+		throw error;
+	}
 }
 
 export async function servePublicFile(response, urlPathname) {
