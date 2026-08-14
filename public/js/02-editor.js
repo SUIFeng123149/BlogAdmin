@@ -51,3 +51,5 @@
     document.querySelector("#new-post").onclick=newPost;
     refreshPostCategoryOptions();
     
+
+    $("#post-form").elements.body.addEventListener("input",refreshMarkdownPreview); document.querySelectorAll("[data-markdown-mode]").forEach(button=>button.onclick=()=>{ const mode=button.dataset.markdownMode; markdownDropZone.classList.remove("markdown-mode-edit","markdown-mode-preview","markdown-mode-split"); markdownDropZone.classList.add(`markdown-mode-${mode}`); document.querySelectorAll("[data-markdown-mode]").forEach(item=>item.classList.toggle("active",item===button)); refreshMarkdownPreview(); });
