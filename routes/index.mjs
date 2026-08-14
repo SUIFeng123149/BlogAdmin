@@ -80,6 +80,10 @@ export async function handleApi(request, response, pathname) {
 		const { pdfToMarkdown } = await import("../services/pdf-convert.mjs");
 		return json(response, 200, await pdfToMarkdown(await readBody(request)));
 	}
+	if (pathname === "/api/media-scan" && request.method === "POST") {
+		const { scanMediaReferences } = await import("../services/media-scan.mjs");
+		return json(response, 200, await scanMediaReferences());
+	}
 	if (pathname === "/api/albums" && request.method === "GET")
 		return json(response, 200, { items: await listAlbums() });
 	if (pathname === "/api/albums" && request.method === "POST") {
