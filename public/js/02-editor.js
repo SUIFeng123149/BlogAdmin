@@ -1,5 +1,3 @@
-/* ===== 内联脚本块 #2 ===== */
-
     const postForm=document.querySelector("#post-form");
     const hiddenPostMetadata=["series", "seriesOrder", "testedOn"];
     let postCategoriesBySection={ notes: ["日记", "随笔", "生活", "思考"], games: ["游戏记录", "游戏攻略", "游戏评测"], other: ["其他"] };

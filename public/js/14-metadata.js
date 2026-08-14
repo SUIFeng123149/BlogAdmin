@@ -1,5 +1,3 @@
-/* ===== 内联脚本块 #14 ===== */
-
         let metadataGenerationTimer;
         function autoGeneratePostMetadata() {
           if(currentSlug) return;

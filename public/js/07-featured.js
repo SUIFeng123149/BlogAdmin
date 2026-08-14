@@ -1,0 +1,3 @@
+    const featuredLimit=6;
+    async function setPostFeatured(slug, featured, input) { const featuredCountValue=posts.filter(post=>post.featured).length; if(featured&&featuredCountValue>=featuredLimit) { input.checked=false; showToast("最多 6 篇精选文章","请先取消一篇已精选文章。","error"); return; } try { const post=await api(`/api/posts/${encodeURIComponent(slug)}`); await api(`/api/posts/${encodeURIComponent(slug)}`,{method:"PUT",body:JSON.stringify({...post,featured})}); showToast(featured?"已加入首页精选":"已取消首页精选",post.title); await loadPosts(); } catch(error) { input.checked=!featured; showToast("精选状态未更新",error.message||"请稍后重试。","error"); } }
+  

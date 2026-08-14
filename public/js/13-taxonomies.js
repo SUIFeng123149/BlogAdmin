@@ -1,5 +1,3 @@
-/* ===== 内联脚本块 #13 ===== */
-
         let dataTaxonomies={projectCategories:[],projectStatuses:[],projectTags:[],projectOptions:[],skillCategories:[],timelineTypes:[],techStack:[],artists:[]};
         const renderPickerWithTaxonomies=renderPicker;
         window.renderPicker=(container,values,name,onChange)=>renderPickerWithTaxonomies(container,values,name==="skills"?"techStack":name,onChange);

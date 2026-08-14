@@ -1,5 +1,3 @@
-/* ===== 内联脚本块 #15 ===== */
-
       (function() {
         var SCHEMAS = {
           projects: [

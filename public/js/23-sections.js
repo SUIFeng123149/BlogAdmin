@@ -1,5 +1,3 @@
-/* ===== 内联脚本块 #23 ===== */
-
 (function () {
   const SECTION_ICONS = { technical: "💻", notes: "✍️", games: "🎮", other: "📁" };
   let sectionsData = [];
@@ -167,4 +165,3 @@
     loadSections();
   });
 })();
-

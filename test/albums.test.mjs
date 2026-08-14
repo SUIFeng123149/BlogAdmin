@@ -22,8 +22,8 @@ test("normalizes local album metadata", () => {
 
 test("provides an album workspace in the admin interface", async () => {
 	const page = await readFile(new URL("../public/index.html", import.meta.url), "utf8");
-	const scripts = await readFile(new URL("../public/js/03-nav-controls.js", import.meta.url), "utf8");
-	assert.match(scripts, /dataset\.view="albums"/);
+	const scripts = await readFile(new URL("../public/js/03-albums.js", import.meta.url), "utf8");
+	assert.match(scripts, /albumNav\.dataset\.view="albums"/);
 	assert.match(page, /id="albums"/);
-	assert.match(scripts, /main.*append\(.*albums.*workspace/s);
+	assert.match(scripts, /function loadAlbums\(/);
 });

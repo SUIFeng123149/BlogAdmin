@@ -1,5 +1,3 @@
-/* ===== 内联脚本块 #22 ===== */
-
       (function() {
         var enhanced = new WeakMap();
         /* 包装单个 select */

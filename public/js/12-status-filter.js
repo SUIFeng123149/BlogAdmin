@@ -1,5 +1,3 @@
-/* ===== 内联脚本块 #12 ===== */
-
         const postStatusFilter=document.createElement("select");
         postStatusFilter.id="post-status-filter";
         postStatusFilter.setAttribute("aria-label","按文章状态筛选");
