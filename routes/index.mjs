@@ -113,12 +113,34 @@ export async function handleApi(request, response, pathname) {
 	const assetMatch = pathname.match(/^\/api\/posts\/([^/]+)\/assets\/([^/]+)$/);
 	if (assetMatch && request.method === "GET") {
 		const { cleanSlug } = await import("../utils.mjs");
+		const { getObject } = await import("../lib/oss.mjs");
 		const slug = cleanSlug(decodeURIComponent(assetMatch[1]));
 		const filename = basename(decodeURIComponent(assetMatch[2]));
-		const { oss } = await import("../config.mjs");
-		const url = `https://${oss.bucket}.${oss.region}.aliyuncs.com/post-assets/${slug}.assets/${encodeURIComponent(filename)}`;
-		response.writeHead(302, { Location: url });
-		return response.end();
+		const extension = extname(filename).toLowerCase();
+		const contentType =
+			extension === ".webp"
+				? "image/webp"
+				: extension === ".mp4"
+					? "video/mp4"
+					: extension === ".webm"
+						? "video/webm"
+						: "application/octet-stream";
+		// 服务端代理读取 OSS：避免 302 直链触发 OSS Referer 防盗链
+		// （本地 127.0.0.1 预览会被拒），并隐藏真实资源地址。
+		const key = `post-assets/${slug}.assets/${filename}`;
+		try {
+			const { content } = await getObject(key);
+			response.writeHead(200, {
+				"Content-Type": contentType,
+				"Cache-Control": "no-store",
+			});
+			return response.end(content);
+		} catch (error) {
+			const code = error && error.code;
+			if (code === "NoSuchKey" || code === "NoSuchObject")
+				return text(response, 404, "Not found.");
+			throw error;
+		}
 	}
 	if (assetMatch && request.method === "DELETE") {
 		const { cleanSlug } = await import("../utils.mjs");
