@@ -86,7 +86,7 @@ function renderFeaturedPage() {
 	list.innerHTML = items
 		.map((post) => {
 			const isCurrent = post.slug === currentSlug;
-			return `<div class="post-row ${isCurrent ? "is-selected" : ""}"><span><strong>${escapeHtml(post.title)}${isCurrent ? ' <span class="muted">（当前编辑）</span>' : ""}</strong><br><span class="muted">${escapeHtml(post.category || "未分类")} · ${escapeHtml(post.published || "")}</span></span><span class="post-meta">${post.draft ? "草稿 · " : ""}精选</span><button class="secondary" type="button" data-unfeature="${encodeURIComponent(post.slug)}">取消精选</button></div>`;
+			return `<div class="post-row ${isCurrent ? "is-selected" : ""}"><span style="flex:1;min-width:0"><strong>${escapeHtml(post.title)}${isCurrent ? ' <span class="muted">（当前编辑）</span>' : ""}</strong><br><span class="muted">${escapeHtml(post.category || "未分类")} · ${escapeHtml(post.published || "")}</span></span><span class="post-meta">${post.draft ? "草稿 · " : ""}精选</span><button class="primary" type="button" style="flex:0 0 auto;width:auto;min-width:0;padding:7px 12px;justify-content:center;background:var(--accent);color:#fff;border:1px solid transparent;border-radius:5px;font-weight:650" data-unfeature="${encodeURIComponent(post.slug)}">取消精选</button></div>`;
 		})
 		.join("");
 	list.querySelectorAll("[data-unfeature]").forEach(
