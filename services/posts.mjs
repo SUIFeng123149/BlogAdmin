@@ -9,7 +9,7 @@ import {
 import { assertPathInside, decodeImageDataUrl } from "../lib/storage.mjs";
 import { uploadPostAsset } from "../lib/oss.mjs";
 import sharp from "sharp";
-import { currentDate, isVerificationStale, serializePost } from "../lib/posts.mjs";
+import { currentDate, isVerificationStale, serializePost, assertFeaturedLimit } from "../lib/posts.mjs";
 import { addToTagLibrary, addToCategoryLibrary } from "./library.mjs";
 import { triggerDeploy } from "./deploy.mjs";
 import {
@@ -51,6 +51,14 @@ export async function listPosts() {
 	return posts.sort((a, b) =>
 		String(b.published).localeCompare(String(a.published)),
 	);
+}
+
+/** 统计精选文章数（排除指定 slug，便于更新时不算自己） */
+async function countFeaturedExcludingSelf(slug) {
+	const posts = await listPosts();
+	return posts.filter(
+		(post) => post.featured && post.slug !== slug,
+	).length;
 }
 
 export async function savePostAsset(slug, body) {
@@ -129,6 +137,8 @@ export async function createPost(body) {
 	} catch (error) {
 		if (error.message === "此文件名已存在。") throw error;
 	}
+	// 新建文章：此前的精选数即当前总量（新文章尚未写盘）
+	await assertFeaturedLimit(await countFeaturedExcludingSelf(null), body.featured);
 	const post = {
 		...body,
 		published: currentDate(),
@@ -147,6 +157,11 @@ export async function updatePost(currentSlug, body) {
 	const nextFile = fileForSlug(nextSlug);
 	const { frontmatter: previous } = parseFrontmatter(
 		await readFile(currentFile, "utf8"),
+	);
+	// 更新文章：排除自身后仍满额则拒绝（避免 7+ 篇精选）
+	await assertFeaturedLimit(
+		await countFeaturedExcludingSelf(currentSlug),
+		body.featured,
 	);
 	const post = {
 		...body,
