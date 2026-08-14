@@ -1,6 +1,6 @@
 const featuredLimit = 6;
 
-/** 文章精选状态切换（列表开关 / 精选管理页共用），input 可为空 */
+/** 文章精选状态切换（列表开关 / 精选管理子页面共用），input 可为空 */
 async function setPostFeatured(slug, featured, input) {
 	const featuredCountValue = posts.filter((post) => post.featured).length;
 	if (featured && featuredCountValue >= featuredLimit) {
@@ -23,81 +23,80 @@ async function setPostFeatured(slug, featured, input) {
 	}
 }
 
-/* ===== 精选管理页（仅收录精选文章，可快捷调整） ===== */
+/* ===== 精选管理子页面（编辑页进入，围绕当前编辑文章调整） ===== */
 function featuredPosts() {
 	return posts.filter((post) => post.featured);
 }
-function featuredCandidates(keyword) {
-	return posts.filter(
-		(post) =>
-			!post.featured &&
-			(!keyword ||
-				`${post.title}${post.category}${post.published}`
-					.toLowerCase()
-					.includes(keyword)),
-	);
+
+function currentEditedPost() {
+	return posts.find((post) => post.slug === currentSlug) || null;
 }
 
 function renderFeaturedPage() {
-	const list = $("#featured-list");
-	const count = $("#featured-count");
+	const current = currentEditedPost();
 	const items = featuredPosts();
+	const count = $("#featured-count");
 	count.textContent = `${items.length} / ${featuredLimit}`;
+
+	// 当前编辑文章信息与快捷操作
+	const title = $("#featured-current-title");
+	const status = $("#featured-current-status");
+	const actions = $("#featured-current-actions");
+	if (title && status && actions) {
+		if (current) {
+			title.textContent = current.title;
+			const isFeat = current.featured;
+			status.textContent = isFeat ? "（已精选）" : "（未精选）";
+			status.style.color = isFeat ? "var(--accent)" : "var(--muted)";
+			actions.innerHTML = "";
+			if (!isFeat) {
+				const btn = document.createElement("button");
+				btn.type = "button";
+				btn.className = "primary";
+				btn.textContent = "将本文设为精选";
+				btn.disabled = items.length >= featuredLimit;
+				btn.onclick = () => setPostFeatured(current.slug, true, null);
+				actions.append(btn);
+				if (items.length >= featuredLimit) {
+					const hint = document.createElement("span");
+					hint.className = "field-hint";
+					hint.textContent = "已满 6 篇，请先取消一篇精选。";
+					actions.append(hint);
+				}
+			} else {
+				const note = document.createElement("span");
+				note.className = "field-hint";
+				note.textContent = "本文已在首页精选列表中，可在下方取消。";
+				actions.append(note);
+			}
+		} else {
+			title.textContent = "未在编辑状态";
+			status.textContent = "";
+			actions.innerHTML = "";
+		}
+	}
+
+	// 精选列表（当前文章高亮）
+	const list = $("#featured-list");
 	if (!items.length) {
 		list.innerHTML =
-			'<div class="empty-state">暂无精选文章。点击「＋ 添加精选」从候选中选择，或在文章列表勾选「精选」。</div>';
-	} else {
-		list.innerHTML = items
-			.map(
-				(post) =>
-					`<div class="post-row"><span><strong>${escapeHtml(post.title)}</strong><br><span class="muted">${escapeHtml(post.category || "未分类")} · ${escapeHtml(post.published || "")}</span></span><span class="post-meta">${post.draft ? "草稿 · " : ""}精选</span><button class="secondary" type="button" data-unfeature="${encodeURIComponent(post.slug)}">取消精选</button></div>`,
-			)
-			.join("");
-		list.querySelectorAll("[data-unfeature]").forEach(
-			(button) =>
-				(button.onclick = () =>
-					setPostFeatured(decodeURIComponent(button.dataset.unfeature), false, null)),
-		);
-	}
-	const addToggle = $("#featured-add-toggle");
-	const canAdd = items.length < featuredLimit;
-	addToggle.disabled = !canAdd;
-	renderFeaturedCandidates();
-	// 无精选时默认展开候选区，方便快速添加
-	if (
-		items.length === 0 &&
-		$("#featured-candidates-panel").classList.contains("hidden")
-	)
-		$("#featured-candidates-panel").classList.remove("hidden");
-}
-
-function renderFeaturedCandidates() {
-	const box = $("#featured-candidates");
-	const keyword = String($("#featured-search")?.value || "").trim().toLowerCase();
-	const candidates = featuredCandidates(keyword).slice(0, 20);
-	if (!candidates.length) {
-		box.innerHTML = '<p class="muted">没有可添加的候选文章。</p>';
+			'<div class="empty-state">暂无精选文章。在编辑页勾选「首页精选」保存后即可加入。</div>';
 		return;
 	}
-	box.innerHTML = candidates
-		.map(
-			(post) =>
-				`<button type="button" class="secondary" data-feature="${encodeURIComponent(post.slug)}">+ ${escapeHtml(post.title)}</button>`,
-		)
+	list.innerHTML = items
+		.map((post) => {
+			const isCurrent = post.slug === currentSlug;
+			return `<div class="post-row ${isCurrent ? "is-selected" : ""}"><span><strong>${escapeHtml(post.title)}${isCurrent ? ' <span class="muted">（当前编辑）</span>' : ""}</strong><br><span class="muted">${escapeHtml(post.category || "未分类")} · ${escapeHtml(post.published || "")}</span></span><span class="post-meta">${post.draft ? "草稿 · " : ""}精选</span><button class="secondary" type="button" data-unfeature="${encodeURIComponent(post.slug)}">取消精选</button></div>`;
+		})
 		.join("");
-	box.querySelectorAll("[data-feature]").forEach(
+	list.querySelectorAll("[data-unfeature]").forEach(
 		(button) =>
 			(button.onclick = () =>
-				setPostFeatured(decodeURIComponent(button.dataset.feature), true, null)),
+				setPostFeatured(decodeURIComponent(button.dataset.unfeature), false, null)),
 	);
 }
 
-$("#featured-add-toggle").onclick = () => {
-	const panel = $("#featured-candidates-panel");
-	panel.classList.toggle("hidden");
-	if (!panel.classList.contains("hidden")) renderFeaturedCandidates();
-};
-$("#featured-search").oninput = renderFeaturedCandidates;
+$("#featured-back").onclick = () => show("editor");
 
 /* ===== 编辑页：勾选「首页精选」时的快捷入口 ===== */
 function refreshFeaturedEditorHint() {
@@ -132,7 +131,7 @@ featuredEditorHint.style.display = "none";
 featuredCheckbox?.closest("label")?.after(featuredEditorHint);
 featuredCheckbox?.addEventListener("change", refreshFeaturedEditorHint);
 
-/** 刷新精选相关 UI（精选管理页 + 编辑页提示） */
+/** 刷新精选相关 UI（精选管理子页面 + 编辑页提示） */
 function refreshFeaturedUI() {
 	renderFeaturedPage();
 	refreshFeaturedEditorHint();
