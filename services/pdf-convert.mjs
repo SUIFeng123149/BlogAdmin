@@ -51,21 +51,24 @@ export async function pdfToMarkdown(body) {
 
 	try {
 		await writeFile(inputPath, bytes);
-		const { stderr } = await execFileAsync(
-			python,
-			[scriptPath, inputPath, outputPath],
-			{ timeout: 120_000, maxBuffer: 20 * 1024 * 1024 },
-		);
-		if (stderr && !stderr.includes("DeprecationWarning"))
-			throw new Error(stderr.trim() || "PDF 转换失败。");
+		// stderr 中可能出现 pdfminer 的非致命警告（如字体描述缺失时的
+		// "Could not get FontBBox ..."），不代表转换失败。
+		// 成功与否以退出码 + 输出文件内容为准：execFile 在非 0 退出时
+		// 会 reject（error.message 含 stderr 便于排查），此处无需再判 stderr。
+		await execFileAsync(python, [scriptPath, inputPath, outputPath], {
+			timeout: 120_000,
+			maxBuffer: 20 * 1024 * 1024,
+		});
 		const markdown = await readFile(outputPath, "utf8");
-		if (!markdown.trim()) throw new Error("PDF 中未识别到可转换的文本内容。");
+		if (!markdown.trim())
+			throw new Error("PDF 中未识别到可转换的文本内容。");
 		return {
 			markdown,
 			title: basename(String(body.name || ""), ".pdf").trim(),
 		};
 	} catch (error) {
 		const message = error instanceof Error ? error.message : String(error);
+		// 若输出文件已生成（转换成功但随后读取出错等），尽力返回已转换内容
 		throw new Error(
 			message.includes("pdfplumber") || message.includes("Python")
 				? message
