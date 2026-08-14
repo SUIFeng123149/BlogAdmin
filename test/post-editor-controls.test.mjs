@@ -40,7 +40,7 @@ test("article list combines metadata filters with capped featured management", (
 	assert.match(scripts, /function filteredPosts\(\)/);
 	assert.match(scripts, /data-post-featured/);
 	assert.match(styles, /\.post-row > button \{/);
-	assert.match(scripts, /const featuredLimit=6/);
+	assert.match(scripts, /const\s+featuredLimit\s*=\s*6/);
 	assert.doesNotMatch(page, /id="featured-posts"/);
 	assert.doesNotMatch(scripts, /const featuredNav=/);
 });
