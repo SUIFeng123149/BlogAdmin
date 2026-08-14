@@ -49,10 +49,10 @@ async function collectReferences() {
 		const re = /((?:src|href)="|!\[[^\]]*\]\()([^"')]+)/g;
 		for (const m of src.matchAll(re)) {
 			const u = m[2].trim();
-			if (u.startsWith("./") && u.includes(".assets/")) {
-				const parts = u.slice(2).split(".assets/", 2);
-				if (parts.length === 2)
-					add(`post-assets/${parts[0]}.assets/${parts[1]}`, `post ${slug} [正文]`);
+			// 相对引用 ./X.assets/ 或 ./X_assets/ → post-assets/X(.|_)assets/
+			const rel = u.match(/^\.{1,2}\/([\w\u4e00-\u9fff-]+[._]assets)\/(.+)$/);
+			if (rel) {
+				add(`post-assets/${rel[1]}/${rel[2]}`, `post ${slug} [正文]`);
 			} else if (u.startsWith("/assets/") || u.startsWith("/post-assets/") || OSS_BASE_PATTERN.test(u)) {
 				add(u, `post ${slug} [正文]`);
 			}

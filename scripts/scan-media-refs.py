@@ -138,10 +138,10 @@ def collect_references():
             add(m.group(1).strip(), f"post {slug} [frontmatter]")
         for m in re.finditer(r'((?:src|href)="|!\[[^\]]*\]\()([^"\')]+)', src):
             u = m.group(2).strip()
-            if u.startswith("./") and ".assets/" in u:
-                parts = u[2:].split(".assets/", 1)
-                if len(parts) == 2:
-                    add(f"post-assets/{parts[0]}.assets/{parts[1]}", f"post {slug} [正文]")
+            # 相对引用 ./X.assets/ 或 ./X_assets/ → post-assets/X(.|_)assets/（保留原有下划线/点）
+            rel = re.match(r"^\.{1,2}/([\w\u4e00-\u9fff-]+[._]assets)/(.+)$", u)
+            if rel:
+                add(f"post-assets/{rel.group(1)}/{rel.group(2)}", f"post {slug} [正文]")
             elif u.startswith(("/assets/", "/post-assets/", "http")):
                 add(u, f"post {slug} [正文]")
 
