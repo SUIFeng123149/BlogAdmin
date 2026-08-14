@@ -1,12 +1,13 @@
 # 🛠️ Mizuki 管理后台
 
-`Mizuki 管理后台` 是一个独立的、密码保护的 Node 服务，用于图形化编辑本静态 Astro 博客的 Markdown 源文件与站点数据。博客前端保持静态，管理后台**不会**被打进 `dist` 构建产物，整个 `admin/` 目录也被 `.gitignore` 排除，改动不会提交到主站仓库。
+`Mizuki 管理后台` 是一个独立的、密码保护的 Node 服务，用于图形化编辑本静态 Astro 博客的 Markdown 源文件与站点数据。博客前端保持静态，管理后台**不会**被打进 `dist` 构建产物，整个 `admin/` 目录也被主站 `.gitignore` 排除，改动不会提交到主站仓库。
 
 ## 功能概览
 
 | 模块 | 功能 |
 |------|------|
-| **文章** | 文章增删改查、Markdown 源码编辑与实时预览、标签/分类/系列管理、封面与媒体上传（自动转 WebP）、**PDF 课件一键转 Markdown**、草稿与精选开关 |
+| **文章** | 文章增删改查、Markdown 源码编辑与实时预览（图片缩略显示、点击看原图）、标签/分类/系列管理、封面与媒体上传（自动转 WebP）、**PDF 课件一键转 Markdown**、草稿与精选开关 |
+| **精选管理** | 从编辑页进入的子页面：查看当前编辑文章是否精选、一键设置/取消、精选列表管理（上限 6 篇，前端+后端双重校验） |
 | **数据中心** | 管理项目、技能、时间线、此刻、音乐等结构化数据；从 GitHub / Gitee 一键拉取项目 |
 | **站点设置** | 站点标题、副标题、主题色相、横幅、评论、音乐播放器、分享图生成等开关 |
 | **处理工具 → 转 WebP** | 批量图片压缩转换（PNG/JPEG/GIF/TIFF/AVIF → WebP，可调质量） |
@@ -37,6 +38,8 @@ DEPLOY_HOOK_URL=https://example.com/build-hook
 ```
 
 > `.env.admin` 会被 `admin/config.mjs` 在启动时自动读取，无需手动导出环境变量。
+>
+> ⚠️ Windows 上若启动报 `EACCES`，通常是端口落在 Hyper-V/WSL2 的保留范围内，换一个端口（如 `8899`）并更新 `ADMIN_PORT` 即可。
 
 ### 3. 启动
 
@@ -50,6 +53,30 @@ pnpm admin
 
 请勿将管理后台直接暴露到公网。保持 `ADMIN_HOST=127.0.0.1`，或将其置于 HTTPS 反向代理之后并添加额外的访问控制层。
 
+## 前端架构
+
+前端为**原生 JavaScript（零框架、零构建）**，单页管理界面已从「单个 219KB 的 index.html 内联全部代码」重构为模块化：
+
+```
+admin/public/
+├── index.html          # 骨架：各视图 HTML 结构（约 120 行）
+├── css/admin.css       # 全部样式
+└── js/                 # 25 个按功能拆分的脚本模块（按需 <script src> 顺序加载）
+    ├── 00-core.js          # 基础工具（api/组件渲染/文章列表/数据中心核心）
+    ├── 01-post-placement   # 首页分区控件
+    ├── 02-editor           # 文章编辑器（分类/导入/上传/预览）
+    ├── 03-albums … 06-workspace   # 相册/公告/个人资料/工作台
+    ├── 07-featured         # 精选管理（子页面 + 编辑页快捷入口）
+    ├── 08-diary…20-icon    # 日记/分类/字段分组/图标选择器 等
+    ├── 21-stale-posts      # 待验证文章动态过期管理
+    ├── 22-selects          # 自定义下拉增强
+    ├── 23-sections         # 分区管理
+    └── 24-convert          # 图片转 WebP / 音频转 MP3
+```
+
+- 模块间通过共享全局变量协作（`currentSlug`、`activeCollection`、`posts` 等），加载顺序即依赖顺序
+- 后端为 Node 原生 `node:http`（无 Express），ESM 模块按 `routes / services / lib` 分层
+
 ## ✍️ 文章编辑与 PDF 导入
 
 ### Markdown 编辑
@@ -57,8 +84,16 @@ pnpm admin
 编辑文章页提供 **编辑 / 预览 / 分屏** 三种模式，支持：
 
 - 拖入 `.md` 文件直接导入（自动解析 Frontmatter）
-- 上传图片 / 封面（自动转 WebP）与 MP4/WebM 视频
+- 上传图片 / 封面（自动转 WebP）与 MP4/WebM 视频；预览区图片以缩略图显示、点击查看原图
 - 拖入或点击 **导入 PDF**：PDF 课件自动转换为 Markdown 并**写入编辑框**，可继续编辑后手动保存，不会直接落盘
+
+### 精选管理
+
+首页精选上限 **6 篇**（与主站 `getFeaturedPosts` 一致），前端 + 后端双重校验：
+
+- 编辑页勾选「首页精选」→ 下方显示当前精选 `n/6`、其他精选文章标题与「管理精选文章」入口
+- 精选管理子页面：展示当前编辑文章（一键「将本文设为精选」）、精选列表（可取消，样式与正文一致）、「← 返回编辑」
+- 满 6 篇时前端直接提示拦截，后端 `createPost` / `updatePost` 亦权威拒绝（400）
 
 ### PDF 课件转 Markdown
 
@@ -69,13 +104,11 @@ pnpm admin
 3. 为每个代码块**自动识别语言标签**（Java / C / Python / JavaScript / XML / YAML / SQL / JSON，纯文本归为 `txt`）
 4. 将结果填入正文编辑框，标题为空时自动用文件名填充
 
-转换后的代码块可正确显示语言徽章与语法高亮。依赖说明：
-
 ```bash
 pip install pdfplumber   # 本机需安装 Python 3 与 pdfplumber
 ```
 
-未安装时会给出明确的提示。单文件上限 50 MB。
+转换中的 `Could not get FontBBox ...` 等字体警告属 pdfminer 的非致命输出，不会影响转换成功。单文件上限 50 MB。
 
 ## ☁️ 阿里云 OSS 媒体存储
 
@@ -88,7 +121,8 @@ OSS_ACCESS_KEY_ID=your-access-key-id
 OSS_ACCESS_KEY_SECRET=your-access-key-secret
 ```
 
-未配置 OSS 时，媒体上传接口会提示配置缺失。可在阿里云 RAM 控制台创建子用户并授权后获取 AccessKey。
+- 未配置 OSS 时，媒体上传接口会提示配置缺失
+- 编辑器预览经 `/api/posts/{slug}/assets/...` **服务端代理**读取 OSS，本地与线上均可正常显示（绕开 OSS Referer 防盗链），且不暴露直链
 
 ## 🌐 从 GitHub / Gitee 自动拉取项目
 
@@ -124,29 +158,45 @@ GITEE_TOKEN=
 
 ## 🧪 测试
 
-后台使用 Node 内置测试运行器（`node:test`），覆盖文章序列化、媒体转换、PDF 解码、存储安全、远程项目同步等：
+后台使用 Node 内置测试运行器（`node:test`），覆盖文章序列化、精选上限、媒体转换、PDF 解码、存储安全、远程项目同步、前端模块化等：
 
 ```bash
 cd admin
-node --test test/*.test.mjs
+node --test test/*.test.mjs   # 53 个用例
 ```
+
+关键测试文件：
+
+| 文件 | 覆盖 |
+|------|------|
+| `posts.test.mjs` | 文章序列化、精选上限校验 |
+| `post-editor-controls.test.mjs` | 编辑器/数据中心前端功能断言 |
+| `frontend-modules.test.mjs` | 模块化拆分完整性（无内联残留、资源存在、语法） |
+| `frontend-load-order.test.mjs` | 按加载顺序执行全部 JS 模块，无顶层错误/TDZ |
+| `featured-page.test.mjs` | 精选管理子页面结构 |
+| `pdf-convert.test.mjs` | PDF 解码校验 |
 
 ## 📁 目录结构
 
 ```
 admin/
-├── public/index.html      # 单页前端（原生 JS）
-├── lib/                   # 核心库：posts / storage / audio / oss / pdf2md.py
-├── services/              # 业务服务：posts / media / library / deploy / pdf-convert ...
-├── routes/                # HTTP 路由：index.mjs / static.mjs
-├── test/                  # node:test 单元测试
-├── config.mjs             # 配置加载（.env.admin）
-├── server.mjs             # 服务入口
+├── public/               # 前端（单页 + 模块化资源）
+│   ├── index.html
+│   ├── css/admin.css
+│   ├── js/               # 25 个功能模块
+│   └── favicon.svg / png # 网站图标
+├── lib/                  # 核心库：posts / storage / audio / oss / pdf2md.py
+├── services/             # 业务服务：posts / media / library / deploy / pdf-convert ...
+├── routes/               # HTTP 路由：index.mjs / static.mjs
+├── test/                 # node:test 单元测试（53 个）
+├── config.mjs            # 配置加载（.env.admin）
+├── server.mjs            # 服务入口
 └── README.md
 ```
 
 ## 常见问题
 
-- **端口被占用**：`ADMIN_PORT` 已在 `.env.admin` 配置，确认没有旧实例在运行。
+- **端口被占用 / 启动报 EACCES**：`ADMIN_PORT` 已在 `.env.admin` 配置；EACCES 多为 Hyper-V 保留端口，换端口即可。
 - **PDF 导入报 Python 错误**：本机缺少 `python3` 或 `pdfplumber`，执行 `pip install pdfplumber` 后重试。
 - **媒体上传失败**：检查 OSS 配置（`OSS_BUCKET` / `OSS_ACCESS_KEY_ID` / `OSS_ACCESS_KEY_SECRET`）。
+- **图片预览不显示**：确认走 `/api/posts/{slug}/assets/...` 代理（已修复 OSS 直链被 Referer 拦截的问题）。
