@@ -46,12 +46,20 @@ function mediaScanRender(data) {
 	if (orphans.length) {
 		const head = document.createElement("div");
 		head.className = "convert-result-item";
-		head.innerHTML = `<strong>🗂 孤儿 ${orphans.length} 个（OSS 存在但主站未引用，可考虑清理）</strong>`;
+		head.innerHTML =
+			`<strong>🗂 孤儿 ${orphans.length} 个（OSS 存在但主站未引用，可清理）</strong>` +
+			` <button class="danger" type="button" id="media-scan-delete-all" style="margin-left:8px;padding:4px 10px;border-radius:5px;font-weight:650">全部删除</button>`;
 		box.append(head);
 		for (const key of orphans.slice(0, 30)) {
 			const row = document.createElement("div");
 			row.className = "convert-result-item";
-			row.innerHTML = `<span class="muted">○ ${escapeHtml(key)}</span>`;
+			row.style.display = "flex";
+			row.style.justifyContent = "space-between";
+			row.style.alignItems = "center";
+			row.style.gap = "10px";
+			row.innerHTML =
+				`<span class="muted" style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">○ ${escapeHtml(key)}</span>` +
+				`<button class="secondary" type="button" data-scan-delete="${escapeHtml(key)}" style="flex:0 0 auto;padding:4px 10px;border-radius:5px">删除</button>`;
 			box.append(row);
 		}
 		if (orphans.length > 30)
@@ -59,6 +67,44 @@ function mediaScanRender(data) {
 				className: "muted",
 				textContent: `… 共 ${orphans.length} 个`,
 			}));
+		// 删除按钮
+		box.querySelectorAll("[data-scan-delete]").forEach((btn) => {
+			btn.onclick = () =>
+				mediaScanDelete([btn.dataset.scanDelete], btn);
+		});
+		const deleteAll = $("#media-scan-delete-all");
+		if (deleteAll)
+			deleteAll.onclick = () => mediaScanDelete(orphans, deleteAll);
+	}
+}
+
+/** 删除孤儿对象，成功后重新扫描 */
+async function mediaScanDelete(keys, button) {
+	if (
+		!keys.length ||
+		!confirm(`确定删除 ${keys.length} 个孤儿对象？\n删除后不可恢复。`)
+	)
+		return;
+	const original = button.textContent;
+	button.disabled = true;
+	button.textContent = "删除中...";
+	try {
+		const result = await api("/api/media-scan/delete", {
+			method: "POST",
+			body: JSON.stringify({ keys }),
+		});
+		const message = [];
+		if (result.deleted?.length) message.push(`已删除 ${result.deleted.length} 个`);
+		if (result.failed?.length) message.push(`${result.failed.length} 个失败`);
+		showToast("删除完成", message.join("，") || "无变化");
+		// 重新扫描刷新列表
+		const data = await api("/api/media-scan", { method: "POST" });
+		mediaScanRender(data);
+	} catch (error) {
+		showToast("删除失败", error.message || "请稍后重试。", "error");
+	} finally {
+		button.disabled = false;
+		button.textContent = original;
 	}
 }
 

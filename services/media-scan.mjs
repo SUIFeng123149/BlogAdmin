@@ -2,7 +2,7 @@
 // 比对主站代码（src/data、src/content/posts、src/config.ts、src/components）
 // 中的媒体引用与 OSS 实际对象，返回断链与孤儿。
 import { config } from "../config.mjs";
-import { listObjects } from "../lib/oss.mjs";
+import { listObjects, deleteObject } from "../lib/oss.mjs";
 import { readdir, readFile } from "node:fs/promises";
 import { join, relative } from "node:path";
 
@@ -112,4 +112,45 @@ export async function scanMediaReferences() {
 		missing,
 		orphans,
 	};
+}
+
+/**
+ * 删除孤儿媒体对象（仅限 assets/ 与 post-assets/ 前缀，且需通过重新扫描确认是孤儿）。
+ * @param {string[]} keys 待删除的 OSS key
+ * @returns {Promise<{deleted: string[], failed: {key: string, error: string}[]}>}
+ */
+export async function deleteOrphanMedia(keys) {
+	const unique = [...new Set(keys.filter(Boolean))];
+	if (!unique.length) return { deleted: [], failed: [] };
+
+	// 安全校验：只允许媒体目录前缀
+	const allowed = unique.every((key) =>
+		key.startsWith("assets/") || key.startsWith("post-assets/"),
+	);
+	if (!allowed)
+		throw new Error("只允许删除 assets/ 与 post-assets/ 下的媒体对象。");
+
+	// 重新扫描确认待删对象确实是孤儿（防止误删被引用的文件）
+	const { orphans } = await scanMediaReferences();
+	const orphanSet = new Set(orphans);
+	const notOrphan = unique.filter((key) => !orphanSet.has(key));
+	if (notOrphan.length)
+		throw new Error(
+			`以下对象仍被主站引用，不可删除：${notOrphan.slice(0, 3).join("、")}${notOrphan.length > 3 ? " 等" : ""}`,
+		);
+
+	const deleted = [];
+	const failed = [];
+	for (const key of unique) {
+		try {
+			await deleteObject(key);
+			deleted.push(key);
+		} catch (error) {
+			failed.push({
+				key,
+				error: error instanceof Error ? error.message : String(error),
+			});
+		}
+	}
+	return { deleted, failed };
 }

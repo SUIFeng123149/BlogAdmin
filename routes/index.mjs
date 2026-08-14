@@ -84,6 +84,17 @@ export async function handleApi(request, response, pathname) {
 		const { scanMediaReferences } = await import("../services/media-scan.mjs");
 		return json(response, 200, await scanMediaReferences());
 	}
+	if (pathname === "/api/media-scan/delete" && request.method === "POST") {
+		const { deleteOrphanMedia } = await import("../services/media-scan.mjs");
+		const body = await readBody(request);
+		return json(
+			response,
+			200,
+			await deleteOrphanMedia(
+				Array.isArray(body.keys) ? body.keys.map(String) : [],
+			),
+		);
+	}
 	if (pathname === "/api/albums" && request.method === "GET")
 		return json(response, 200, { items: await listAlbums() });
 	if (pathname === "/api/albums" && request.method === "POST") {
