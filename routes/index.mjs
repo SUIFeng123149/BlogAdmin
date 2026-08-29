@@ -125,6 +125,17 @@ export async function handleApi(request, response, pathname) {
 			),
 		);
 	}
+	// 自动归类预览：只按当前标题/标签/正文给出分区与二级分类建议，不落盘
+	if (pathname === "/api/posts/classify" && request.method === "POST") {
+		const { classifyArticlePreview } = await import(
+			"../services/classification.mjs"
+		);
+		return json(
+			response,
+			200,
+			await classifyArticlePreview(await readBody(request)),
+		);
+	}
 	const assetMatch = pathname.match(/^\/api\/posts\/([^/]+)\/assets\/([^/]+)$/);
 	if (assetMatch && request.method === "GET") {
 		const { cleanSlug } = await import("../utils.mjs");

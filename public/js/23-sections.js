@@ -151,6 +151,8 @@
     try {
       await api("/api/data/sections", { method: "PUT", body: JSON.stringify({ items: sectionsData }) });
       showToast("分区已保存", "已触发站点重新部署。", "success");
+      if (typeof window.dispatchEvent === "function")
+        window.dispatchEvent(new Event("post-sections-updated"));
       setDirty(false);
       renderList();
     } catch (err) {

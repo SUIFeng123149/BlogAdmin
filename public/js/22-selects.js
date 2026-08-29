@@ -29,23 +29,38 @@
           var onDocDown = function(e) {
             if (!wrap.contains(e.target)) closeMenu();
           };
+          var escapeText = function(value) {
+            return String(value).replace(/[&<>"]/g, function(c) {
+              return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c];
+            });
+          };
+          var optionItemHtml = function(opt) {
+            return '<div class="sel-opt' + (opt.selected ? " selected" : "") + '" data-value="' + escapeText(opt.value) + '">' + escapeText(opt.textContent) + "</div>";
+          };
           var openMenu = function() {
             closeMenu();
             menu = document.createElement("div");
             menu.className = "sel-menu";
-            Array.from(sel.options).forEach(function(opt) {
-              var item = document.createElement("div");
-              item.className = "sel-opt" + (opt.selected ? " selected" : "");
-              item.textContent = opt.textContent;
-              item.dataset.value = opt.value;
-              item.addEventListener("click", function(e) {
-                e.stopPropagation();
-                sel.value = item.dataset.value;
-                syncLabel();
-                sel.dispatchEvent(new Event("change", { bubbles: true }));
-                closeMenu();
-              });
-              menu.appendChild(item);
+            /* 支持 <optgroup>：分组标题渲染为 .sel-group（首页分区按一级分区分组） */
+            var html = "";
+            Array.prototype.forEach.call(sel.children, function(child) {
+              if (child.tagName === "OPTGROUP") {
+                html += '<div class="sel-group">' + escapeText(child.label) + "</div>";
+                Array.prototype.forEach.call(child.children, function(opt) { html += optionItemHtml(opt); });
+              } else if (child.tagName === "OPTION") {
+                html += optionItemHtml(child);
+              }
+            });
+            if (!html) html = '<div class="sel-opt" data-value="">—</div>';
+            menu.innerHTML = html;
+            menu.addEventListener("click", function(e) {
+              var item = e.target && e.target.closest ? e.target.closest(".sel-opt") : null;
+              if (!item) return;
+              e.stopPropagation();
+              sel.value = item.dataset.value;
+              syncLabel();
+              sel.dispatchEvent(new Event("change", { bubbles: true }));
+              closeMenu();
             });
             wrap.appendChild(menu);
             btn.classList.add("open");

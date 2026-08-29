@@ -11,6 +11,8 @@ import { uploadPostAsset } from "../lib/oss.mjs";
 import sharp from "sharp";
 import { currentDate, isVerificationStale, serializePost, assertFeaturedLimit } from "../lib/posts.mjs";
 import { addToTagLibrary, addToCategoryLibrary } from "./library.mjs";
+import { autoClassifyPost } from "./classification.mjs";
+import { readCollection } from "./collections.mjs";
 import { triggerDeploy } from "./deploy.mjs";
 import {
 	mkdir,
@@ -59,6 +61,36 @@ async function countFeaturedExcludingSelf(slug) {
 	return posts.filter(
 		(post) => post.featured && post.slug !== slug,
 	).length;
+}
+
+/**
+ * 未显式选择首页分区时（contentSection 为空 = 自动归类），
+ * 交由分类服务按标题/标签/正文关键词先匹配一级分区、再匹配二级分类，
+ * 无匹配时在对应分区下新建二级分类（写入分区管理配置）。
+ * 分类失败不阻断保存：回落为原字段。
+ */
+async function resolveAutoPlacement(body) {
+	if (body.contentSection) return { post: body, classification: null };
+	try {
+		const { post, classification } = await autoClassifyPost(body);
+		return { post, classification };
+	} catch {
+		return { post: body, classification: null };
+	}
+}
+
+/** 分区配置中出现的一级分区 slug 集合（分区文件读取失败时回落默认集合） */
+async function loadKnownSectionSlugs() {
+	try {
+		const { items } = await readCollection("sections");
+		return new Set(
+			(Array.isArray(items) ? items : [])
+				.map((section) => section.slug)
+				.filter(Boolean),
+		);
+	} catch {
+		return null;
+	}
 }
 
 export async function savePostAsset(slug, body) {
@@ -139,16 +171,16 @@ export async function createPost(body) {
 	}
 	// 新建文章：此前的精选数即当前总量（新文章尚未写盘）
 	await assertFeaturedLimit(await countFeaturedExcludingSelf(null), body.featured);
+	const { post: resolved, classification } = await resolveAutoPlacement(body);
 	const post = {
-		...body,
+		...resolved,
 		published: currentDate(),
-		lastVerified: body.status === "verified" ? currentDate() : "",
+		lastVerified: resolved.status === "verified" ? currentDate() : "",
 	};
-	await writeFile(file, serializePost(post), "utf8");
-	await addToTagLibrary(body.tags);
-	await addToCategoryLibrary(body.category);
-	await addToCategoryLibrary(body.category);
-	return { slug, deployment: await triggerDeploy() };
+	await writeFile(file, serializePost(post, await loadKnownSectionSlugs()), "utf8");
+	await addToTagLibrary(post.tags);
+	await addToCategoryLibrary(post.category);
+	return { slug, deployment: await triggerDeploy(), classification };
 }
 
 export async function updatePost(currentSlug, body) {
@@ -163,20 +195,24 @@ export async function updatePost(currentSlug, body) {
 		await countFeaturedExcludingSelf(currentSlug),
 		body.featured,
 	);
-	const post = {
+	// 未显式选择分区时自动归类（body 缺省字段继承旧值，便于旧客户端）
+	const { post: resolved, classification } = await resolveAutoPlacement({
+		...previous,
 		...body,
+	});
+	const post = {
+		...resolved,
 		published: previous.published || currentDate(),
 		lastVerified:
-			body.status === "verified"
-				? body.lastVerified || currentDate()
+			resolved.status === "verified"
+				? resolved.lastVerified || currentDate()
 				: previous.lastVerified || "",
 	};
 	if (currentFile !== nextFile) await rename(currentFile, nextFile);
-	await writeFile(nextFile, serializePost(post), "utf8");
-	await addToTagLibrary(body.tags);
-	await addToCategoryLibrary(body.category);
-	await addToCategoryLibrary(body.category);
-	return { slug: nextSlug, deployment: await triggerDeploy() };
+	await writeFile(nextFile, serializePost(post, await loadKnownSectionSlugs()), "utf8");
+	await addToTagLibrary(post.tags);
+	await addToCategoryLibrary(post.category);
+	return { slug: nextSlug, deployment: await triggerDeploy(), classification };
 }
 
 export async function markStalePosts() {

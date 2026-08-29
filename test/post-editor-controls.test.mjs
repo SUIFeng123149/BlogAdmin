@@ -27,6 +27,16 @@ test("article editor links notes to its allowed categories", () => {
 	assert.match(scripts, /function refreshPostCategoryOptions\(preferred=""\)/);
 });
 
+test("homepage section select is driven by section management categories", () => {
+	// 可选项按一级分区 optgroup 分组展示二级菜单（分区管理配置），并带自动归类建议
+	assert.match(scripts, /optgroup/);
+	assert.match(scripts, /post-sections-updated/);
+	assert.match(scripts, /window\.syncPostSectionSelect\s*=\s*function/);
+	assert.match(scripts, /\/api\/posts\/classify/);
+	assert.match(styles, /\.post-section-hint/);
+	assert.match(styles, /\.sel-group/);
+});
+
 test("article editor hides legacy metadata and styles native selects", () => {
 	assert.match(scripts, /const hiddenPostMetadata=\["series", "seriesOrder", "testedOn"\]/);
 	assert.match(styles, /select\s*\{[^}]*appearance:\s*none/s);
